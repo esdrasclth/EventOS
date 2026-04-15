@@ -50,6 +50,7 @@ button {
 
 input, textarea, select {
   font-family: var(--font-family);
+  font-size: max(16px, 1em);
   outline: none;
 }
 
