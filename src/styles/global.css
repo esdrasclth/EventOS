@@ -122,7 +122,7 @@ img {
 }
 
 .fade-in-up {
-  animation: fadeInUp var(--transition-base) ease forwards;
+  animation: fadeInUp var(--transition-base) ease both;
 }
 
 /* Stagger children */
