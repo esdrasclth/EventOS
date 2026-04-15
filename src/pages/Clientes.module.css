@@ -54,7 +54,6 @@
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast);
-  opacity: 0;
 }
 
 .card:active {

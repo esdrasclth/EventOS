@@ -6,7 +6,6 @@
   cursor: pointer;
   overflow: hidden;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  opacity: 0;
 }
 
 .card:active {
