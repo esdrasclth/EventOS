@@ -12,38 +12,49 @@ import {
   FileSpreadsheet,
   FileText,
   CheckCircle2,
+  XCircle,
   Trash2,
   Edit3,
   Clock,
 } from 'lucide-react';
 import { useOrden } from '../hooks/useOrden';
-import { updateOrden, deleteOrden } from '../services/firebase';
+import { deleteOrden, avanzarEstadoOrden } from '../services/firebase';
 import { exportToExcel } from '../services/exportExcel';
 import { exportToPdf } from '../services/exportPdf';
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
 import styles from './DetalleOrden.module.css';
 
-const ESTADO_LABELS = {
-  pendiente: 'Pendiente',
+const ESTADO_LABELS: Record<string, string> = {
+  pendiente:  'Pendiente',
   confirmado: 'Confirmado',
-  entregado: 'Entregado',
-  pagado: 'Pagado',
+  entregado:  'Entregado',
+  pagado:     'Pagado',
+  cancelado:  'Cancelado',
 };
 
-const ESTADO_COLORS = {
-  pendiente: '#F59E0B',
-  confirmado: '#386641',
-  entregado: '#22C55E',
-  pagado: '#6366F1',
+const ESTADO_COLORS: Record<string, string> = {
+  pendiente:  '#F59E0B',
+  confirmado: '#3B82F6',
+  entregado:  '#14B8A6',
+  pagado:     '#22C55E',
+  cancelado:  '#EF4444',
 };
 
 const SIGUIENTE_ESTADO: Record<string, { estado: string; label: string } | null> = {
-  pendiente: { estado: 'confirmado', label: 'Confirmar orden' },
-  confirmado: { estado: 'entregado', label: 'Marcar como entregado' },
-  entregado: { estado: 'pagado', label: 'Marcar como pagado' },
-  pagado: null,
+  pendiente:  { estado: 'confirmado', label: 'Confirmar orden' },
+  confirmado: { estado: 'entregado',  label: 'Marcar como entregado' },
+  entregado:  { estado: 'pagado',     label: 'Marcar como pagado' },
+  pagado:     null,
+  cancelado:  null,
 };
+
+// Puede eliminarse solo si está pendiente
+const puedeEliminar = (estado: string) => estado === 'pendiente';
+// Puede editarse solo si no está pagado ni cancelado
+const puedeEditar = (estado: string) => estado !== 'pagado' && estado !== 'cancelado';
+// Puede cancelarse si está confirmado o entregado
+const puedeCancelar = (estado: string) => estado === 'confirmado' || estado === 'entregado';
 
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-');
@@ -63,6 +74,7 @@ const DetalleOrden: React.FC = () => {
   const navigate = useNavigate();
   const { orden, loading, error, refetch } = useOrden(id ?? '');
   const [marking, setMarking] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -94,10 +106,22 @@ const DetalleOrden: React.FC = () => {
     if (!siguiente) return;
     setMarking(true);
     try {
-      await updateOrden(orden.id, { estado: siguiente.estado as never });
+      await avanzarEstadoOrden(orden.id, siguiente.estado);
       await refetch();
     } finally {
       setMarking(false);
+    }
+  }
+
+  async function handleCancelar() {
+    if (!orden) return;
+    if (!confirm(`¿Cancelar la orden de ${orden.nombre}? Quedará registrada como cancelada.`)) return;
+    setCancelling(true);
+    try {
+      await avanzarEstadoOrden(orden.id, 'cancelado');
+      await refetch();
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -141,21 +165,25 @@ const DetalleOrden: React.FC = () => {
           <ArrowLeft size={20} />
         </button>
         <div className={styles.heroActions}>
-          <button
-            className={styles.heroActionBtn}
-            onClick={() => navigate(`/ordenes/${orden.id}/editar`)}
-            aria-label="Editar"
-          >
-            <Edit3 size={18} />
-          </button>
-          <button
-            className={`${styles.heroActionBtn} ${styles.heroActionDanger}`}
-            onClick={handleDelete}
-            disabled={deleting}
-            aria-label="Eliminar"
-          >
-            <Trash2 size={18} />
-          </button>
+          {puedeEditar(orden.estado) && (
+            <button
+              className={styles.heroActionBtn}
+              onClick={() => navigate(`/ordenes/${orden.id}/editar`)}
+              aria-label="Editar"
+            >
+              <Edit3 size={18} />
+            </button>
+          )}
+          {puedeEliminar(orden.estado) && (
+            <button
+              className={`${styles.heroActionBtn} ${styles.heroActionDanger}`}
+              onClick={handleDelete}
+              disabled={deleting}
+              aria-label="Eliminar"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
 
         {/* Estado badge */}
@@ -274,7 +302,7 @@ const DetalleOrden: React.FC = () => {
         <div className={styles.auditBox}>
           <Clock size={13} className={styles.auditIcon} />
           <div className={styles.auditLines}>
-            {orden.creadoPor && (
+            {orden.creadoPor ? (
               <p className={styles.auditLine}>
                 <span className={styles.auditVerb}>Creado por</span>
                 <span className={styles.auditUser}>{orden.creadoPor.nombre}</span>
@@ -282,21 +310,47 @@ const DetalleOrden: React.FC = () => {
                   {new Date(orden.creadoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </p>
-            )}
-            {orden.modificadoPor && (
-              <p className={styles.auditLine}>
-                <span className={styles.auditVerb}>Modificado por</span>
-                <span className={styles.auditUser}>{orden.modificadoPor.nombre}</span>
-                <span className={styles.auditDate}>
-                  {new Date(orden.modificadoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
-                </span>
-              </p>
-            )}
-            {!orden.creadoPor && !orden.modificadoPor && (
+            ) : (
               <p className={styles.auditLine}>
                 <span className={styles.auditVerb}>Creado el</span>
                 <span className={styles.auditDate}>
                   {new Date(orden.creadoEn).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              </p>
+            )}
+            {orden.confirmadoPor && (
+              <p className={styles.auditLine}>
+                <span className={styles.auditVerb}>Confirmado por</span>
+                <span className={styles.auditUser}>{orden.confirmadoPor.nombre}</span>
+                <span className={styles.auditDate}>
+                  {new Date(orden.confirmadoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              </p>
+            )}
+            {orden.entregadoPor && (
+              <p className={styles.auditLine}>
+                <span className={styles.auditVerb}>Entregado por</span>
+                <span className={styles.auditUser}>{orden.entregadoPor.nombre}</span>
+                <span className={styles.auditDate}>
+                  {new Date(orden.entregadoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              </p>
+            )}
+            {orden.pagadoPor && (
+              <p className={styles.auditLine}>
+                <span className={styles.auditVerb}>Pagado por</span>
+                <span className={styles.auditUser}>{orden.pagadoPor.nombre}</span>
+                <span className={styles.auditDate}>
+                  {new Date(orden.pagadoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              </p>
+            )}
+            {orden.canceladoPor && (
+              <p className={styles.auditLine}>
+                <span className={styles.auditVerb} style={{ color: '#EF4444' }}>Cancelado por</span>
+                <span className={styles.auditUser}>{orden.canceladoPor.nombre}</span>
+                <span className={styles.auditDate}>
+                  {new Date(orden.canceladoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </p>
             )}
@@ -324,6 +378,17 @@ const DetalleOrden: React.FC = () => {
           </button>
         </div>
 
+        {puedeCancelar(orden.estado) && (
+          <button
+            className={`${styles.btn} ${styles.btnDanger}`}
+            onClick={handleCancelar}
+            disabled={cancelling}
+          >
+            <XCircle size={18} />
+            {cancelling ? 'Cancelando...' : 'Cancelar orden'}
+          </button>
+        )}
+
         {SIGUIENTE_ESTADO[orden.estado] ? (
           <button
             className={`${styles.btn} ${styles.btnPrimary}`}
@@ -333,10 +398,15 @@ const DetalleOrden: React.FC = () => {
             <CheckCircle2 size={18} />
             {marking ? 'Guardando...' : SIGUIENTE_ESTADO[orden.estado]!.label}
           </button>
-        ) : (
-          <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnDisabled}`} disabled>
+        ) : orden.estado === 'pagado' ? (
+          <button className={`${styles.btn} ${styles.btnDone}`} disabled>
             <CheckCircle2 size={18} />
             Orden pagada ✓
+          </button>
+        ) : (
+          <button className={`${styles.btn} ${styles.btnCancelled}`} disabled>
+            <XCircle size={18} />
+            Orden cancelada
           </button>
         )}
       </div>

@@ -124,6 +124,29 @@ export async function updateOrden(id: string, data: Partial<OrdenFormData>): Pro
   });
 }
 
+export async function avanzarEstadoOrden(id: string, nuevoEstado: string): Promise<void> {
+  const audit = currentAudit();
+  const auditKey: Record<string, string> = {
+    confirmado: 'confirmadoPor',
+    entregado: 'entregadoPor',
+    pagado: 'pagadoPor',
+    cancelado: 'canceladoPor',
+  };
+  if (USE_MOCK_DATA) {
+    const orden = mockData.find((o) => o.id === id);
+    if (orden) {
+      (orden as unknown as Record<string, unknown>).estado = nuevoEstado;
+      if (audit && auditKey[nuevoEstado]) (orden as unknown as Record<string, unknown>)[auditKey[nuevoEstado]] = audit;
+    }
+    return;
+  }
+  await updateDoc(doc(db, 'ordenes', id), {
+    estado: nuevoEstado,
+    ...(audit ? { modificadoPor: audit } : {}),
+    ...(audit && auditKey[nuevoEstado] ? { [auditKey[nuevoEstado]]: audit } : {}),
+  });
+}
+
 export async function deleteOrden(id: string): Promise<void> {
   if (USE_MOCK_DATA) {
     mockData = mockData.filter((o) => o.id !== id);

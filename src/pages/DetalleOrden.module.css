@@ -337,6 +337,27 @@
   box-shadow: var(--shadow-primary);
 }
 
+.btnDanger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1.5px solid rgba(239,68,68,0.3);
+  box-shadow: none;
+}
+
+.btnDone {
+  background: #DCFCE7;
+  color: #22C55E;
+  box-shadow: none;
+  cursor: default;
+}
+
+.btnCancelled {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  box-shadow: none;
+  cursor: default;
+}
+
 .btnDisabled {
   background: var(--color-success-bg);
   color: var(--color-success);

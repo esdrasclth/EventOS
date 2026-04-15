@@ -11,10 +11,11 @@ import { exportToExcel } from '../services/exportExcel';
 import styles from './Actividad.module.css';
 
 const ESTADO_MAP = {
-  pendiente: { label: 'Pendiente', color: '#F59E0B', bg: '#FEF3C7' },
-  confirmado: { label: 'Confirmado', color: '#386641', bg: '#EBF3EC' },
-  entregado: { label: 'Entregado', color: '#22C55E', bg: '#DCFCE7' },
-  pagado: { label: 'Pagado', color: '#6366F1', bg: '#EEF2FF' },
+  pendiente:  { label: 'Pendiente',  color: '#F59E0B', bg: '#FEF3C7' },
+  confirmado: { label: 'Confirmado', color: '#3B82F6', bg: '#EFF6FF' },
+  entregado:  { label: 'Entregado',  color: '#14B8A6', bg: '#F0FDFA' },
+  pagado:     { label: 'Pagado',     color: '#22C55E', bg: '#DCFCE7' },
+  cancelado:  { label: 'Cancelado',  color: '#EF4444', bg: '#FEE2E2' },
 };
 
 function formatCurrency(amount: number): string {

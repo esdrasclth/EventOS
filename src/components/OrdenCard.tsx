@@ -10,10 +10,11 @@ interface Props {
 }
 
 const ESTADO_MAP = {
-  pendiente: { label: 'Pendiente', color: '#F59E0B' },
-  confirmado: { label: 'Confirmado', color: '#386641' },
-  entregado: { label: 'Entregado', color: '#22C55E' },
-  pagado: { label: 'Pagado', color: '#6366F1' },
+  pendiente:  { label: 'Pendiente',  color: '#F59E0B' },
+  confirmado: { label: 'Confirmado', color: '#3B82F6' },
+  entregado:  { label: 'Entregado',  color: '#14B8A6' },
+  pagado:     { label: 'Pagado',     color: '#22C55E' },
+  cancelado:  { label: 'Cancelado',  color: '#EF4444' },
 };
 
 function formatDate(dateStr: string): string {
@@ -29,7 +30,8 @@ function formatCurrency(amount: number): string {
 const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
   const navigate = useNavigate();
   const estado = ESTADO_MAP[orden.estado] ?? ESTADO_MAP.pendiente;
-  const totalItems = orden.items.reduce((sum, i) => sum + i.cantidad, 0);
+  const totalProductos = orden.items.length;
+  const totalUnidades = orden.items.reduce((sum, i) => sum + i.cantidad, 0);
 
   return (
     <article
@@ -63,7 +65,7 @@ const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
         <div className={styles.footer}>
           <span className={styles.metaItem}>
             <Package size={12} />
-            {totalItems} productos
+            {totalProductos} producto{totalProductos !== 1 ? 's' : ''} · {totalUnidades} uds.
           </span>
           <span className={styles.total}>{formatCurrency(orden.total)}</span>
         </div>

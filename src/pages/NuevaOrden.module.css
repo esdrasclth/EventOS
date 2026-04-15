@@ -92,6 +92,51 @@
   letter-spacing: 0.4px;
 }
 
+.diasRentaControl {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: 48px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.diasBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.diasBtn:active:not(:disabled) {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+}
+
+.diasBtn:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+.diasValue {
+  flex: 1;
+  text-align: center;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .fechaRetiroHint {
   font-size: var(--font-size-sm);
   color: var(--color-primary);

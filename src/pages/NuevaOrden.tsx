@@ -13,10 +13,10 @@ import ItemRow from '../components/ItemRow';
 import styles from './NuevaOrden.module.css';
 
 const ESTADOS: { value: EstadoOrden; label: string; color: string }[] = [
-  { value: 'pendiente', label: 'Pendiente', color: '#F59E0B' },
-  { value: 'confirmado', label: 'Confirmado', color: '#386641' },
-  { value: 'entregado', label: 'Entregado', color: '#22C55E' },
-  { value: 'pagado', label: 'Pagado', color: '#6366F1' },
+  { value: 'pendiente',  label: 'Pendiente',  color: '#F59E0B' },
+  { value: 'confirmado', label: 'Confirmado', color: '#3B82F6' },
+  { value: 'entregado',  label: 'Entregado',  color: '#14B8A6' },
+  { value: 'pagado',     label: 'Pagado',     color: '#22C55E' },
 ];
 
 function calcularFechaRetiro(fecha: string, diasRenta: number): string {
@@ -172,21 +172,27 @@ const NuevaOrden: React.FC = () => {
 
           <div className={styles.field}>
             <label className={styles.label}>Días de renta</label>
-            <input
-              className={styles.input}
-              type="number"
-              min={1}
-              max={30}
-              value={form.diasRenta}
-              onChange={(e) => {
-                const dias = Math.max(1, parseInt(e.target.value) || 1);
-                setForm((prev) => ({
-                  ...prev,
-                  diasRenta: dias,
-                  fechaRetiro: calcularFechaRetiro(prev.fecha, dias),
-                }));
-              }}
-            />
+            <div className={styles.diasRentaControl}>
+              <button
+                type="button"
+                className={styles.diasBtn}
+                onClick={() => {
+                  const dias = Math.max(1, form.diasRenta - 1);
+                  setForm((prev) => ({ ...prev, diasRenta: dias, fechaRetiro: calcularFechaRetiro(prev.fecha, dias) }));
+                }}
+                disabled={form.diasRenta <= 1}
+              >−</button>
+              <span className={styles.diasValue}>{form.diasRenta} día{form.diasRenta !== 1 ? 's' : ''}</span>
+              <button
+                type="button"
+                className={styles.diasBtn}
+                onClick={() => {
+                  const dias = Math.min(30, form.diasRenta + 1);
+                  setForm((prev) => ({ ...prev, diasRenta: dias, fechaRetiro: calcularFechaRetiro(prev.fecha, dias) }));
+                }}
+                disabled={form.diasRenta >= 30}
+              >+</button>
+            </div>
             {form.fechaRetiro && (
               <p className={styles.fechaRetiroHint}>
                 Retiro: {(() => {
