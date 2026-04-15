@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#386641"/>
+  <rect x="80" y="80" width="352" height="352" rx="64" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#386641"/>
+      <stop offset="100%" stop-color="#4A8C5C"/>
+    </linearGradient>
+  </defs>
+  <!-- Calendar icon -->
+  <rect x="144" y="168" width="224" height="192" rx="16" fill="none" stroke="white" stroke-width="16"/>
+  <line x1="144" y1="216" x2="368" y2="216" stroke="white" stroke-width="16"/>
+  <line x1="200" y1="144" x2="200" y2="192" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="312" y1="144" x2="312" y2="192" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <!-- Grid dots -->
+  <circle cx="200" cy="256" r="10" fill="white"/>
+  <circle cx="256" cy="256" r="10" fill="white"/>
+  <circle cx="312" cy="256" r="10" fill="white"/>
+  <circle cx="200" cy="304" r="10" fill="white"/>
+  <circle cx="256" cy="304" r="10" fill="white"/>
+  <circle cx="312" cy="304" r="10" fill="white"/>
+  <!-- E letter overlay -->
+  <text x="256" y="380" font-family="Arial Black, sans-serif" font-weight="900" font-size="0" fill="white" text-anchor="middle"/>
+</svg>

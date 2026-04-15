@@ -1,0 +1,53 @@
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, ClipboardList, PlusCircle, Users, Activity } from 'lucide-react';
+import styles from './BottomNav.module.css';
+
+interface NavItem {
+  path: string;
+  icon: React.ReactNode;
+  label: string;
+  isAction?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { path: '/', icon: <Home size={22} />, label: 'Inicio' },
+  { path: '/ordenes', icon: <ClipboardList size={22} />, label: 'Órdenes' },
+  { path: '/nueva', icon: <PlusCircle size={26} />, label: 'Nueva', isAction: true },
+  { path: '/clientes', icon: <Users size={22} />, label: 'Clientes' },
+  { path: '/actividad', icon: <Activity size={22} />, label: 'Actividad' },
+];
+
+const BottomNav: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return (
+    <nav className={styles.nav}>
+      {NAV_ITEMS.map((item) => {
+        const isActive =
+          item.path === '/'
+            ? location.pathname === '/'
+            : location.pathname.startsWith(item.path);
+
+        return (
+          <button
+            key={item.path}
+            className={`${styles.navItem} ${isActive ? styles.active : ''} ${item.isAction ? styles.actionItem : ''}`}
+            onClick={() => navigate(item.path)}
+            aria-label={item.label}
+          >
+            <span className={`${styles.icon} ${item.isAction ? styles.actionIcon : ''}`}>
+              {item.icon}
+            </span>
+            {!item.isAction && (
+              <span className={styles.label}>{item.label}</span>
+            )}
+          </button>
+        );
+      })}
+    </nav>
+  );
+};
+
+export default BottomNav;

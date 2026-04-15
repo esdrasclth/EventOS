@@ -1,0 +1,225 @@
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+/* Hero */
+.hero {
+  background: var(--color-primary-gradient);
+  padding: 64px var(--space-xl) 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+
+.heroLogo {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,0.18);
+  border: 2px solid rgba(255,255,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 900;
+  color: white;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.heroTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+.heroSubtitle {
+  font-size: var(--font-size-base);
+  color: rgba(255,255,255,0.72);
+  position: relative;
+  z-index: 1;
+}
+
+/* Card */
+.card {
+  flex: 1;
+  background: var(--color-white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  margin-top: -var(--radius-xl);
+  padding: var(--space-2xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-black);
+  letter-spacing: -0.4px;
+}
+
+.cardSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  margin-bottom: var(--space-xl);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-base);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 50px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.inputIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.input::placeholder {
+  color: #ACACAC;
+}
+
+.eyeBtn {
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.eyeBtn:hover {
+  color: var(--color-text);
+}
+
+/* Error */
+.errorBox {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* Submit */
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-gradient);
+  color: white;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  box-shadow: var(--shadow-primary);
+  margin-top: var(--space-sm);
+  transition: all var(--transition-fast);
+}
+
+.submitBtn:active {
+  transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btnSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Hint */
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-top: var(--space-xl);
+}
