@@ -28,12 +28,21 @@ const ESTADO_LABELS = {
   pendiente: 'Pendiente',
   confirmado: 'Confirmado',
   entregado: 'Entregado',
+  pagado: 'Pagado',
 };
 
 const ESTADO_COLORS = {
   pendiente: '#F59E0B',
   confirmado: '#386641',
   entregado: '#22C55E',
+  pagado: '#6366F1',
+};
+
+const SIGUIENTE_ESTADO: Record<string, { estado: string; label: string } | null> = {
+  pendiente: { estado: 'confirmado', label: 'Confirmar orden' },
+  confirmado: { estado: 'entregado', label: 'Marcar como entregado' },
+  entregado: { estado: 'pagado', label: 'Marcar como pagado' },
+  pagado: null,
 };
 
 function formatDate(dateStr: string): string {
@@ -46,7 +55,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+  return `$ ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
 }
 
 const DetalleOrden: React.FC = () => {
@@ -79,11 +88,13 @@ const DetalleOrden: React.FC = () => {
     );
   }
 
-  async function handleMarkEntregado() {
-    if (!orden || orden.estado === 'entregado') return;
+  async function handleAvanzarEstado() {
+    if (!orden) return;
+    const siguiente = SIGUIENTE_ESTADO[orden.estado];
+    if (!siguiente) return;
     setMarking(true);
     try {
-      await updateOrden(orden.id, { estado: 'entregado' });
+      await updateOrden(orden.id, { estado: siguiente.estado as never });
       await refetch();
     } finally {
       setMarking(false);
@@ -184,6 +195,13 @@ const DetalleOrden: React.FC = () => {
               <div>
                 <p className={styles.infoLabel}>Fecha del evento</p>
                 <p className={styles.infoValue}>{formatDate(orden.fecha)}</p>
+              </div>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.infoIcon}><Calendar size={14} /></span>
+              <div>
+                <p className={styles.infoLabel}>Fecha de retiro ({orden.diasRenta ?? 1} día{(orden.diasRenta ?? 1) !== 1 ? 's' : ''} de renta)</p>
+                <p className={styles.infoValue}>{orden.fechaRetiro ? formatDate(orden.fechaRetiro) : '—'}</p>
               </div>
             </div>
           </div>
@@ -306,18 +324,21 @@ const DetalleOrden: React.FC = () => {
           </button>
         </div>
 
-        <button
-          className={`${styles.btn} ${styles.btnPrimary} ${orden.estado === 'entregado' ? styles.btnDisabled : ''}`}
-          onClick={handleMarkEntregado}
-          disabled={marking || orden.estado === 'entregado'}
-        >
-          <CheckCircle2 size={18} />
-          {orden.estado === 'entregado'
-            ? 'Ya entregado'
-            : marking
-            ? 'Guardando...'
-            : 'Marcar como Entregado'}
-        </button>
+        {SIGUIENTE_ESTADO[orden.estado] ? (
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={handleAvanzarEstado}
+            disabled={marking}
+          >
+            <CheckCircle2 size={18} />
+            {marking ? 'Guardando...' : SIGUIENTE_ESTADO[orden.estado]!.label}
+          </button>
+        ) : (
+          <button className={`${styles.btn} ${styles.btnPrimary} ${styles.btnDisabled}`} disabled>
+            <CheckCircle2 size={18} />
+            Orden pagada ✓
+          </button>
+        )}
       </div>
     </div>
   );

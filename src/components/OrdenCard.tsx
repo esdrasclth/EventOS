@@ -13,6 +13,7 @@ const ESTADO_MAP = {
   pendiente: { label: 'Pendiente', color: '#F59E0B' },
   confirmado: { label: 'Confirmado', color: '#386641' },
   entregado: { label: 'Entregado', color: '#22C55E' },
+  pagado: { label: 'Pagado', color: '#6366F1' },
 };
 
 function formatDate(dateStr: string): string {
@@ -22,7 +23,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN')}`;
+  return `$ ${amount.toLocaleString('es-HN')}`;
 }
 
 const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {

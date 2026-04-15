@@ -14,10 +14,11 @@ const ESTADO_MAP = {
   pendiente: { label: 'Pendiente', color: '#F59E0B', bg: '#FEF3C7' },
   confirmado: { label: 'Confirmado', color: '#386641', bg: '#EBF3EC' },
   entregado: { label: 'Entregado', color: '#22C55E', bg: '#DCFCE7' },
+  pagado: { label: 'Pagado', color: '#6366F1', bg: '#EEF2FF' },
 };
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+  return `$ ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
 }
 
 function formatDate(dateStr: string): string {
@@ -38,10 +39,12 @@ const Actividad: React.FC = () => {
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
-    const completadas = thisMonth.filter((o) => o.estado === 'entregado');
+    const completadas = thisMonth.filter((o) => o.estado === 'pagado');
     const pendientes = ordenes.filter((o) => o.estado === 'pendiente');
     const ingresos = completadas.reduce((sum, o) => sum + o.total, 0);
-    const ingresosEsperados = pendientes.reduce((sum, o) => sum + o.total, 0);
+    const ingresosEsperados = ordenes
+      .filter((o) => o.estado === 'confirmado' || o.estado === 'entregado')
+      .reduce((sum, o) => sum + o.total, 0);
 
     const recientes = [...ordenes]
       .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())

@@ -16,7 +16,7 @@ function formatDate(): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN')}`;
+  return `$ ${amount.toLocaleString('es-HN')}`;
 }
 
 const Home: React.FC = () => {
@@ -35,7 +35,7 @@ const Home: React.FC = () => {
     });
 
     const ingresos = thisMonth
-      .filter((o) => o.estado === 'entregado')
+      .filter((o) => o.estado === 'pagado')
       .reduce((sum, o) => sum + o.total, 0);
 
     const upcoming = [...ordenes]

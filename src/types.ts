@@ -4,7 +4,7 @@ export interface ItemOrden {
   precio: number;
 }
 
-export type EstadoOrden = 'pendiente' | 'confirmado' | 'entregado';
+export type EstadoOrden = 'pendiente' | 'confirmado' | 'entregado' | 'pagado';
 
 export interface AuditInfo {
   uid: string;
@@ -16,6 +16,8 @@ export interface AuditInfo {
 export interface Orden {
   id: string;
   fecha: string;
+  diasRenta: number;
+  fechaRetiro: string;
   nombre: string;
   telefono: string;
   direccion: string;

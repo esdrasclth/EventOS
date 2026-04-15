@@ -16,7 +16,15 @@ const ESTADOS: { value: EstadoOrden; label: string; color: string }[] = [
   { value: 'pendiente', label: 'Pendiente', color: '#F59E0B' },
   { value: 'confirmado', label: 'Confirmado', color: '#386641' },
   { value: 'entregado', label: 'Entregado', color: '#22C55E' },
+  { value: 'pagado', label: 'Pagado', color: '#6366F1' },
 ];
+
+function calcularFechaRetiro(fecha: string, diasRenta: number): string {
+  if (!fecha || !diasRenta) return '';
+  const d = new Date(fecha + 'T00:00:00');
+  d.setDate(d.getDate() + diasRenta);
+  return d.toISOString().split('T')[0];
+}
 
 const EMPTY_ITEM: ItemOrden = { producto: '', cantidad: 1, precio: 0 };
 
@@ -33,6 +41,8 @@ const NuevaOrden: React.FC = () => {
 
   const [form, setForm] = useState<Omit<OrdenFormData, 'total'>>({
     fecha: new Date().toISOString().split('T')[0],
+    diasRenta: 1,
+    fechaRetiro: calcularFechaRetiro(new Date().toISOString().split('T')[0], 1),
     nombre: '',
     telefono: '',
     direccion: '',
@@ -48,6 +58,8 @@ const NuevaOrden: React.FC = () => {
       if (!o) return;
       setForm({
         fecha: o.fecha,
+        diasRenta: o.diasRenta ?? 1,
+        fechaRetiro: o.fechaRetiro ?? calcularFechaRetiro(o.fecha, o.diasRenta ?? 1),
         nombre: o.nombre,
         telefono: o.telefono,
         direccion: o.direccion,
@@ -146,9 +158,44 @@ const NuevaOrden: React.FC = () => {
               className={styles.input}
               type="date"
               value={form.fecha}
-              onChange={(e) => setField('fecha', e.target.value)}
+              onChange={(e) => {
+                const nuevaFecha = e.target.value;
+                setForm((prev) => ({
+                  ...prev,
+                  fecha: nuevaFecha,
+                  fechaRetiro: calcularFechaRetiro(nuevaFecha, prev.diasRenta),
+                }));
+              }}
               required
             />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Días de renta</label>
+            <input
+              className={styles.input}
+              type="number"
+              min={1}
+              max={30}
+              value={form.diasRenta}
+              onChange={(e) => {
+                const dias = Math.max(1, parseInt(e.target.value) || 1);
+                setForm((prev) => ({
+                  ...prev,
+                  diasRenta: dias,
+                  fechaRetiro: calcularFechaRetiro(prev.fecha, dias),
+                }));
+              }}
+            />
+            {form.fechaRetiro && (
+              <p className={styles.fechaRetiroHint}>
+                Retiro: {(() => {
+                  const [y, m, d] = form.fechaRetiro.split('-');
+                  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+                })()}
+              </p>
+            )}
           </div>
 
           <div className={styles.field}>

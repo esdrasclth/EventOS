@@ -6,6 +6,8 @@ export const MOCK_ORDENES: Orden[] = [
   {
     id: 'orden-001',
     fecha: '2026-04-20',
+    diasRenta: 1,
+    fechaRetiro: '2026-04-21',
     nombre: 'María López',
     telefono: '+504 9988-7766',
     direccion: 'Col. Las Palmas, San Pedro Sula',
@@ -23,6 +25,8 @@ export const MOCK_ORDENES: Orden[] = [
   {
     id: 'orden-002',
     fecha: '2026-04-17',
+    diasRenta: 2,
+    fechaRetiro: '2026-04-19',
     nombre: 'Carlos Hernández',
     telefono: '+504 9876-5432',
     direccion: 'Residencial Los Pinos, Tegucigalpa',
@@ -41,6 +45,8 @@ export const MOCK_ORDENES: Orden[] = [
   {
     id: 'orden-003',
     fecha: '2026-04-15',
+    diasRenta: 1,
+    fechaRetiro: '2026-04-16',
     nombre: 'Ana Patricia Reyes',
     telefono: '+504 9555-1234',
     direccion: 'Barrio El Centro, La Ceiba',
@@ -57,6 +63,8 @@ export const MOCK_ORDENES: Orden[] = [
   {
     id: 'orden-004',
     fecha: '2026-04-28',
+    diasRenta: 3,
+    fechaRetiro: '2026-05-01',
     nombre: 'Empresa Eventos Maravilla S.A.',
     telefono: '+504 2234-5678',
     direccion: 'Zona Industrial, Choloma',
@@ -76,6 +84,8 @@ export const MOCK_ORDENES: Orden[] = [
   {
     id: 'orden-005',
     fecha: '2026-04-12',
+    diasRenta: 1,
+    fechaRetiro: '2026-04-13',
     nombre: 'Roberto Moncada',
     telefono: '+504 9321-0987',
     direccion: 'Col. Kennedy, San Pedro Sula',

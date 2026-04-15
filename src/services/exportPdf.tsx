@@ -172,7 +172,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+  return `$ ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
 }
 
 interface OrdenDocumentProps {
@@ -223,6 +223,12 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
           <Text style={styles.label}>Fecha del evento:</Text>
           <Text style={styles.value}>{formatDate(orden.fecha)}</Text>
         </View>
+        {orden.fechaRetiro ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>Fecha de retiro:</Text>
+            <Text style={styles.value}>{formatDate(orden.fechaRetiro)} ({orden.diasRenta ?? 1} día{(orden.diasRenta ?? 1) !== 1 ? 's' : ''} de renta)</Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Products table */}

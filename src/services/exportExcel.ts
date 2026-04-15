@@ -6,16 +6,18 @@ export function exportToExcel(ordenes: Orden[]): void {
 
   // Sheet 1 — Órdenes summary
   const ordenesData = ordenes.map((o) => ({
-    Fecha: o.fecha,
+    'Fecha evento': o.fecha,
+    'Días renta': o.diasRenta ?? 1,
+    'Fecha retiro': o.fechaRetiro ?? '',
     Cliente: o.nombre,
     Teléfono: o.telefono,
     Dirección: o.direccion,
-    'Total (L.)': o.total,
+    'Total ($)': o.total,
     Estado: o.estado.charAt(0).toUpperCase() + o.estado.slice(1),
   }));
   const ws1 = XLSX.utils.json_to_sheet(ordenesData);
   ws1['!cols'] = [
-    { wch: 12 }, { wch: 30 }, { wch: 18 }, { wch: 35 }, { wch: 12 }, { wch: 12 },
+    { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 30 }, { wch: 18 }, { wch: 35 }, { wch: 12 }, { wch: 12 },
   ];
   XLSX.utils.book_append_sheet(wb, ws1, 'Órdenes');
 
@@ -29,8 +31,8 @@ export function exportToExcel(ordenes: Orden[]): void {
         Fecha: o.fecha,
         Producto: item.producto,
         Cantidad: item.cantidad,
-        'Precio Unit. (L.)': item.precio,
-        'Subtotal (L.)': item.cantidad * item.precio,
+        'Precio Unit. ($)': item.precio,
+        'Subtotal ($)': item.cantidad * item.precio,
       });
     });
   });
