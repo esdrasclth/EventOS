@@ -40,6 +40,7 @@ const NuevaOrden: React.FC = () => {
   const [loadingOrden, setLoadingOrden] = useState(isEdit);
 
   const [form, setForm] = useState<Omit<OrdenFormData, 'total'>>({
+    nombreEvento: '',
     fecha: new Date().toISOString().split('T')[0],
     diasRenta: 1,
     fechaRetiro: calcularFechaRetiro(new Date().toISOString().split('T')[0], 1),
@@ -57,6 +58,7 @@ const NuevaOrden: React.FC = () => {
     getOrden(id).then((o) => {
       if (!o) return;
       setForm({
+        nombreEvento: o.nombreEvento ?? '',
         fecha: o.fecha,
         diasRenta: o.diasRenta ?? 1,
         fechaRetiro: o.fechaRetiro ?? calcularFechaRetiro(o.fecha, o.diasRenta ?? 1),
@@ -102,6 +104,7 @@ const NuevaOrden: React.FC = () => {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.nombreEvento?.trim()) return alert('El nombre del evento es requerido');
     if (!form.nombre.trim()) return alert('El nombre del cliente es requerido');
     if (!form.fecha) return alert('La fecha del evento es requerida');
     if (form.items.some((i) => !i.producto.trim())) return alert('Todos los productos necesitan nombre');
@@ -152,6 +155,16 @@ const NuevaOrden: React.FC = () => {
         {/* Date & Status */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Información del evento</h2>
+          <div className={styles.field}>
+            <label className={styles.label}>Nombre del evento *</label>
+            <input
+              className={styles.input}
+              placeholder="Ej: Paquete brincolin"
+              value={form.nombreEvento}
+              onChange={(e) => setField('nombreEvento', e.target.value)}
+              required
+            />
+          </div>
           <div className={styles.field}>
             <label className={styles.label}>Fecha del evento</label>
             <input
@@ -266,7 +279,7 @@ const NuevaOrden: React.FC = () => {
           <div className={styles.cardTitleRow}>
             <h2 className={styles.cardTitle}>Productos</h2>
             <span className={styles.totalBadge}>
-              L. {total.toLocaleString('es-HN')}
+              $ {total.toLocaleString('es-HN')}
             </span>
           </div>
 

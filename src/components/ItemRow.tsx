@@ -57,7 +57,7 @@ const ItemRow: React.FC<Props> = ({ item, index, onChange, onRemove }) => {
         </div>
         <div className={styles.numField}>
           <label className={styles.numLabel}>Subtotal</label>
-          <div className={styles.subtotal}>L. {subtotal.toLocaleString('es-HN')}</div>
+          <div className={styles.subtotal}>$ {subtotal.toLocaleString('es-HN')}</div>
         </div>
       </div>
     </div>

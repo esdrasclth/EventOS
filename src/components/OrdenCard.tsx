@@ -45,7 +45,8 @@ const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
       <div className={styles.body}>
         <div className={styles.top}>
           <div className={styles.clientInfo}>
-            <h3 className={styles.clientName}>{orden.nombre}</h3>
+            <h3 className={styles.eventName}>{orden.nombreEvento || orden.nombre}</h3>
+            <span className={styles.clientName}>{orden.nombre}</span>
             <span className={styles.datePill}>{formatDate(orden.fecha)}</span>
           </div>
           <span

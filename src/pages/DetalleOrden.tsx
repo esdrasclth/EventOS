@@ -158,8 +158,8 @@ const DetalleOrden: React.FC = () => {
       <div className={styles.heroWrapper}>
         <HeroImage
           imageUrl={orden.imagenUrl || undefined}
-          title={orden.nombre}
-          subtitle={`Evento · ${formatDate(orden.fecha)}`}
+          title={orden.nombreEvento || orden.nombre}
+          subtitle={orden.nombreEvento ? `${orden.nombre} · ${formatDate(orden.fecha)}` : `Evento · ${formatDate(orden.fecha)}`}
         />
         <button className={styles.backBtn} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />

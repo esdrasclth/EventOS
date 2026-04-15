@@ -35,11 +35,21 @@
   min-width: 0;
 }
 
-.clientName {
-  font-size: var(--font-size-md);
+.eventName {
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-black);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.clientName {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

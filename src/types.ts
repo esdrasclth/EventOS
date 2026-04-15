@@ -15,6 +15,7 @@ export interface AuditInfo {
 
 export interface Orden {
   id: string;
+  nombreEvento?: string;
   fecha: string;
   diasRenta: number;
   fechaRetiro: string;
