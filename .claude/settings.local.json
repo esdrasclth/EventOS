@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(wc -l /c/Projects/EventOS/src/pages/*.tsx /c/Projects/EventOS/src/components/*.tsx)"
+      "Bash(wc -l /c/Projects/EventOS/src/pages/*.tsx /c/Projects/EventOS/src/components/*.tsx)",
+      "Bash(npm run:*)"
     ]
   }
 }

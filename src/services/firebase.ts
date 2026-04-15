@@ -12,7 +12,6 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 import type { Orden, OrdenFormData, AuditInfo } from '../types';
 import { USE_MOCK_DATA, MOCK_ORDENES } from '../data/seed';
@@ -21,7 +20,7 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
@@ -29,7 +28,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // ── Audit helper ─────────────────────────────────────────────────────────────
 
@@ -159,8 +157,20 @@ export async function uploadImagen(file: File): Promise<string> {
   if (USE_MOCK_DATA) {
     return URL.createObjectURL(file);
   }
-  // TODO: reemplazar con Cloudinary
-  const storageRef = ref(storage, `imagenes/${Date.now()}-${file.name}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  const cloudName   = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: 'POST', body: formData }
+  );
+
+  if (!res.ok) throw new Error('Error al subir imagen a Cloudinary');
+
+  const data = await res.json();
+  return data.secure_url as string;
 }

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import OrdenCard from '../components/OrdenCard';
 import FilterChips from '../components/FilterChips';
@@ -8,12 +7,14 @@ import type { FilterChip } from '../components/FilterChips';
 import styles from './Ordenes.module.css';
 
 const FILTERS: FilterChip[] = [
-  { id: 'todas', label: 'Todas' },
-  { id: 'hoy', label: 'Hoy' },
-  { id: 'semana', label: 'Esta semana' },
+  { id: 'todas',      label: 'Todas' },
+  { id: 'hoy',        label: 'Hoy' },
+  { id: 'semana',     label: 'Esta semana' },
   { id: 'pendientes', label: 'Pendientes' },
-  { id: 'confirmadas', label: 'Confirmadas' },
+  { id: 'confirmadas',label: 'Confirmadas' },
   { id: 'entregadas', label: 'Entregadas' },
+  { id: 'pagadas',    label: 'Pagadas' },
+  { id: 'canceladas', label: 'Canceladas' },
 ];
 
 function isToday(dateStr: string): boolean {
@@ -38,7 +39,6 @@ function isThisWeek(dateStr: string): boolean {
 }
 
 const Ordenes: React.FC = () => {
-  const navigate = useNavigate();
   const { ordenes, loading } = useOrdenes();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('todas');
@@ -73,6 +73,12 @@ const Ordenes: React.FC = () => {
         break;
       case 'entregadas':
         result = result.filter((o) => o.estado === 'entregado');
+        break;
+      case 'pagadas':
+        result = result.filter((o) => o.estado === 'pagado');
+        break;
+      case 'canceladas':
+        result = result.filter((o) => o.estado === 'cancelado');
         break;
     }
 
@@ -122,15 +128,6 @@ const Ordenes: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* FAB */}
-      <button
-        className={styles.fab}
-        onClick={() => navigate('/nueva')}
-        aria-label="Nueva orden"
-      >
-        <Plus size={26} />
-      </button>
 
       <div className={styles.bottomPad} />
     </div>
