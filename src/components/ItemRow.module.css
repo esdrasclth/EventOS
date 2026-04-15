@@ -73,7 +73,7 @@
 
 .numInput {
   padding: 0 var(--space-sm);
-  font-size: var(--font-size-sm);
+  font-size: 16px;
   text-align: right;
 }
 
