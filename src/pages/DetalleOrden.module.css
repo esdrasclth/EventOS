@@ -136,6 +136,35 @@
   font-weight: 500;
 }
 
+.infoRowContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.telefonoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.callBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: #22C55E;
+  color: #fff;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.callBtn:active {
+  background: #16a34a;
+}
+
 /* Products table */
 .productsTable {
   border-radius: var(--radius-md);

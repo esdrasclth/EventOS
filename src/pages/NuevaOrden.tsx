@@ -133,6 +133,19 @@ const NuevaOrden: React.FC = () => {
     }
   }
 
+  function handleTelefonoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    let formatted = '';
+    if (digits.length <= 3) {
+      formatted = digits.length ? `(${digits}` : '';
+    } else if (digits.length <= 6) {
+      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    } else {
+      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    setField('telefono', formatted);
+  }
+
   if (loadingOrden) {
     return (
       <div className={styles.page}>
@@ -258,16 +271,17 @@ const NuevaOrden: React.FC = () => {
             <input
               className={styles.input}
               type="tel"
-              placeholder="+504 9988-7766"
+              placeholder="(509) 555-1234"
               value={form.telefono}
-              onChange={(e) => setField('telefono', e.target.value)}
+              onChange={handleTelefonoChange}
+              maxLength={14}
             />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Dirección del evento</label>
             <input
               className={styles.input}
-              placeholder="Col. Las Palmas, SPS"
+              placeholder="123 Main St, Wenatchee, WA 98801"
               value={form.direccion}
               onChange={(e) => setField('direccion', e.target.value)}
             />

@@ -206,9 +206,20 @@ const DetalleOrden: React.FC = () => {
           <div className={styles.infoList}>
             <div className={styles.infoRow}>
               <span className={styles.infoIcon}><Phone size={14} /></span>
-              <div>
+              <div className={styles.infoRowContent}>
                 <p className={styles.infoLabel}>Teléfono</p>
-                <p className={styles.infoValue}>{orden.telefono}</p>
+                <div className={styles.telefonoRow}>
+                  <p className={styles.infoValue}>{orden.telefono}</p>
+                  {orden.telefono && (
+                    <a
+                      href={`tel:${orden.telefono.replace(/\D/g, '')}`}
+                      className={styles.callBtn}
+                      aria-label="Llamar"
+                    >
+                      <Phone size={15} />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
             <div className={styles.infoRow}>
