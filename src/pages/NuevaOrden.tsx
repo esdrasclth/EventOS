@@ -58,7 +58,7 @@ function calcularDuracion(
   }
 }
 
-const EMPTY_ITEM: ItemOrden = { producto: '', cantidad: 1, precio: 0 };
+const EMPTY_ITEM: ItemOrden = { producto: '', cantidad: 0, precio: 0 };
 
 const NuevaOrden: React.FC = () => {
   const navigate = useNavigate();

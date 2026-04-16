@@ -37,10 +37,13 @@ const ItemRow: React.FC<Props> = ({ item, index, onChange, onRemove }) => {
           <input
             className={`${styles.input} ${styles.numInput}`}
             type="number"
+            inputMode="numeric"
+            pattern="[0-9]*"
             min={1}
             placeholder="0"
             value={item.cantidad || ''}
             onChange={(e) => onChange(index, 'cantidad', parseInt(e.target.value) || 0)}
+            onFocus={(e) => e.target.select()}
           />
         </div>
         <div className={styles.numField}>
@@ -48,11 +51,14 @@ const ItemRow: React.FC<Props> = ({ item, index, onChange, onRemove }) => {
           <input
             className={`${styles.input} ${styles.numInput}`}
             type="number"
+            inputMode="decimal"
+            pattern="[0-9]*"
             min={0}
             step="0.01"
             placeholder="0.00"
             value={item.precio || ''}
             onChange={(e) => onChange(index, 'precio', parseFloat(e.target.value) || 0)}
+            onFocus={(e) => e.target.select()}
           />
         </div>
         <div className={styles.numField}>
