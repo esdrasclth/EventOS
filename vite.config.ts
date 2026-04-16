@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
-        name: 'EventOS',
-        short_name: 'EventOS',
+        name: 'Panchos Rentals',
+        short_name: 'Panchos Rentals',
         description: 'Gestión de agenda para alquiler de mobiliario de eventos',
         theme_color: '#386641',
         background_color: '#FFFFFF',

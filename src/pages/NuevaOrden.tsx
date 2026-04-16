@@ -388,7 +388,7 @@ const NuevaOrden: React.FC = () => {
 
         {/* Image */}
         <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Imagen de tarima</h2>
+          <h2 className={styles.cardTitle}>Imagen</h2>
           {imagePreview ? (
             <div className={styles.imagePreview}>
               <img src={imagePreview} alt="Preview" className={styles.previewImg} />

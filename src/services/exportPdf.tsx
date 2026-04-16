@@ -187,7 +187,7 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.companyName}>EventOS</Text>
+          <Text style={styles.companyName}>Panchos Rentals</Text>
           <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
           <Text style={styles.companySubtitle}>Honduras · eventoshn@gmail.com</Text>
         </View>
@@ -268,7 +268,7 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
 
       {/* Footer */}
       <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>EventOS — Alquiler de Mobiliario para Eventos</Text>
+        <Text style={styles.footerText}>Panchos Rentals — Alquiler de Mobiliario para Eventos</Text>
         <Text style={styles.footerText}>Generado el {new Date().toLocaleDateString('es-HN')}</Text>
       </View>
     </Page>

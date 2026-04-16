@@ -39,7 +39,7 @@ const Login: React.FC = () => {
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroLogo}>E</div>
-        <h1 className={styles.heroTitle}>EventOS</h1>
+        <h1 className={styles.heroTitle}>Panchos Rentals</h1>
         <p className={styles.heroSubtitle}>Gestión de eventos</p>
       </div>
 
