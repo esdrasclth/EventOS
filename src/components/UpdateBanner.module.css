@@ -1,0 +1,62 @@
+.banner {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px var(--space-base);
+  background: var(--color-black);
+  color: var(--color-white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.icon {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.text {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.updateBtn {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.updateBtn:active {
+  background: #2d5233;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.closeBtn:active {
+  color: var(--color-white);
+}

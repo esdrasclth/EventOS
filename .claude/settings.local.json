@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(wc -l /c/Projects/EventOS/src/pages/*.tsx /c/Projects/EventOS/src/components/*.tsx)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls /c/Projects/EventOS/src/*.d.ts)"
     ]
   }
 }

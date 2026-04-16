@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import BottomNav from './components/BottomNav';
 import NombreModal from './components/NombreModal';
+import UpdateBanner from './components/UpdateBanner';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Ordenes from './pages/Ordenes';
@@ -31,6 +32,7 @@ function AppRoutes() {
 
   return (
     <>
+      <UpdateBanner />
       {needsName && <NombreModal onDone={(n) => setDisplayName(n)} />}
       <Routes>
         <Route path="/login" element={<Login />} />

@@ -269,6 +269,32 @@
   max-height: 250px;
 }
 
+.uploadImgBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin-top: var(--space-sm);
+  transition: all var(--transition-fast);
+}
+
+.uploadImgBtn:active:not(:disabled) {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+}
+
+.uploadImgBtn:disabled {
+  opacity: 0.6;
+}
+
 /* Audit log */
 .auditBox {
   display: flex;

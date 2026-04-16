@@ -16,9 +16,11 @@ import {
   Trash2,
   Edit3,
   Clock,
+  Camera,
 } from 'lucide-react';
+import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
-import { deleteOrden, avanzarEstadoOrden } from '../services/firebase';
+import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen } from '../services/firebase';
 import { exportToExcel } from '../services/exportExcel';
 import { exportToPdf } from '../services/exportPdf';
 import HeroImage from '../components/HeroImage';
@@ -117,6 +119,24 @@ const DetalleOrden: React.FC = () => {
   const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !orden) return;
+    setUploadingImg(true);
+    try {
+      const url = await uploadImagen(file);
+      await updateOrden(orden.id, { imagenUrl: url } as never);
+    } catch (err) {
+      console.error(err);
+      alert('Error al subir la imagen');
+    } finally {
+      setUploadingImg(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }, [orden]);
 
   if (loading) {
     return (
@@ -350,15 +370,28 @@ const DetalleOrden: React.FC = () => {
           icon={<Image size={16} />}
           defaultOpen={false}
         >
-          {orden.imagenUrl ? (
+          {orden.imagenUrl && (
             <img
               src={orden.imagenUrl}
-              alt="Tarima"
+              alt="Imagen"
               className={styles.tarimImage}
             />
-          ) : (
-            <p className={styles.noComentarios}>No hay imagen adjunta</p>
           )}
+          <button
+            className={styles.uploadImgBtn}
+            onClick={() => fileRef.current?.click()}
+            disabled={uploadingImg}
+          >
+            <Camera size={18} />
+            {uploadingImg ? 'Subiendo...' : orden.imagenUrl ? 'Cambiar imagen' : 'Agregar imagen'}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
         </CollapseSection>
 
         {/* Audit log */}
