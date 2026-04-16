@@ -52,6 +52,7 @@ const Ordenes: React.FC = () => {
       result = result.filter(
         (o) =>
           o.nombre.toLowerCase().includes(q) ||
+          (o.nombreEvento ?? '').toLowerCase().includes(q) ||
           o.direccion.toLowerCase().includes(q) ||
           o.telefono.includes(q)
       );

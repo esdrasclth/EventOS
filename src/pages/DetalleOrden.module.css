@@ -11,7 +11,7 @@
 
 .backBtn {
   position: absolute;
-  top: var(--space-xl);
+  top: calc(var(--space-xl) + env(safe-area-inset-top, 0px));
   left: var(--space-base);
   width: 40px;
   height: 40px;
@@ -32,7 +32,7 @@
 
 .heroActions {
   position: absolute;
-  top: var(--space-xl);
+  top: calc(var(--space-xl) + env(safe-area-inset-top, 0px));
   right: var(--space-base);
   display: flex;
   gap: var(--space-sm);
@@ -66,7 +66,7 @@
 
 .estadoBadge {
   position: absolute;
-  top: calc(var(--space-xl) + 52px);
+  top: calc(var(--space-xl) + 52px + env(safe-area-inset-top, 0px));
   right: var(--space-base);
   padding: 5px 14px;
   border-radius: var(--radius-full);
