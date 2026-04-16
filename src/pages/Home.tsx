@@ -38,10 +38,13 @@ const Home: React.FC = () => {
       .filter((o) => o.estado === 'pagado')
       .reduce((sum, o) => sum + o.total, 0);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const upcoming = [...ordenes]
       .filter((o) => {
         const d = new Date(o.fecha + 'T00:00:00');
-        return d >= new Date() && o.estado !== 'entregado';
+        return d >= today && !['entregado', 'pagado', 'cancelado'].includes(o.estado);
       })
       .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
