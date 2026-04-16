@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import type { Orden } from '../types';
-import { getOrden } from '../services/firebase';
+import { subscribeToOrden } from '../services/firebase';
 
 interface UseOrdenResult {
   orden: Orden | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
 }
 
 export function useOrden(id: string): UseOrdenResult {
@@ -14,24 +13,23 @@ export function useOrden(id: string): UseOrdenResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  useEffect(() => {
     if (!id) return;
     setLoading(true);
-    setError(null);
-    try {
-      const data = await getOrden(id);
-      setOrden(data);
-    } catch (e) {
-      setError('Error al cargar la orden');
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    const unsub = subscribeToOrden(
+      id,
+      (data) => {
+        setOrden(data);
+        setLoading(false);
+      },
+      (e) => {
+        setError('Error al cargar la orden');
+        setLoading(false);
+        console.error(e);
+      },
+    );
+    return unsub;
   }, [id]);
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
-
-  return { orden, loading, error, refetch: fetch };
+  return { orden, loading, error };
 }

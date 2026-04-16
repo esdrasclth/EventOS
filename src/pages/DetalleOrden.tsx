@@ -112,7 +112,7 @@ function calcularDuracionDetalle(orden: { fecha: string; horaInicio?: string; fe
 const DetalleOrden: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orden, loading, error, refetch } = useOrden(id ?? '');
+  const { orden, loading, error } = useOrden(id ?? '');
   const [marking, setMarking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -147,7 +147,6 @@ const DetalleOrden: React.FC = () => {
     setMarking(true);
     try {
       await avanzarEstadoOrden(orden.id, siguiente.estado);
-      await refetch();
     } finally {
       setMarking(false);
     }
@@ -159,7 +158,6 @@ const DetalleOrden: React.FC = () => {
     setCancelling(true);
     try {
       await avanzarEstadoOrden(orden.id, 'cancelado');
-      await refetch();
     } finally {
       setCancelling(false);
     }

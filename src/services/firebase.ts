@@ -10,6 +10,7 @@ import {
   deleteDoc,
   query,
   orderBy,
+  onSnapshot,
   Timestamp,
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -69,6 +70,38 @@ export async function getOrden(id: string): Promise<Orden | null> {
   const snap = await getDoc(doc(db, 'ordenes', id));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as Orden;
+}
+
+export function subscribeToOrdenes(
+  callback: (ordenes: Orden[]) => void,
+  onError?: (e: Error) => void,
+): () => void {
+  if (USE_MOCK_DATA) {
+    callback([...mockData].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()));
+    return () => {};
+  }
+  const q = query(collection(db, 'ordenes'), orderBy('fecha'));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Orden))),
+    onError,
+  );
+}
+
+export function subscribeToOrden(
+  id: string,
+  callback: (orden: Orden | null) => void,
+  onError?: (e: Error) => void,
+): () => void {
+  if (USE_MOCK_DATA) {
+    callback(mockData.find((o) => o.id === id) ?? null);
+    return () => {};
+  }
+  return onSnapshot(
+    doc(db, 'ordenes', id),
+    (snap) => callback(snap.exists() ? ({ id: snap.id, ...snap.data() } as Orden) : null),
+    onError,
+  );
 }
 
 export async function createOrden(data: OrdenFormData): Promise<string> {
