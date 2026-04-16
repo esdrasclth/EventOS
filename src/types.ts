@@ -17,8 +17,11 @@ export interface Orden {
   id: string;
   nombreEvento?: string;
   fecha: string;
-  diasRenta: number;
-  fechaRetiro: string;
+  horaInicio?: string;
+  fechaFin?: string;
+  horaFin?: string;
+  diasRenta?: number;
+  fechaRetiro?: string;
   nombre: string;
   telefono: string;
   direccion: string;

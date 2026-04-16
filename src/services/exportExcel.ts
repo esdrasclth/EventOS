@@ -6,9 +6,8 @@ export function exportToExcel(ordenes: Orden[]): void {
 
   // Sheet 1 — Órdenes summary
   const ordenesData = ordenes.map((o) => ({
-    'Fecha evento': o.fecha,
-    'Días renta': o.diasRenta ?? 1,
-    'Fecha retiro': o.fechaRetiro ?? '',
+    'Inicio': o.horaInicio ? `${o.fecha} ${o.horaInicio}` : o.fecha,
+    'Termina': o.horaFin ? `${o.fechaFin ?? o.fechaRetiro ?? ''} ${o.horaFin}` : (o.fechaFin ?? o.fechaRetiro ?? ''),
     Cliente: o.nombre,
     Teléfono: o.telefono,
     Dirección: o.direccion,
@@ -17,7 +16,7 @@ export function exportToExcel(ordenes: Orden[]): void {
   }));
   const ws1 = XLSX.utils.json_to_sheet(ordenesData);
   ws1['!cols'] = [
-    { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 30 }, { wch: 18 }, { wch: 35 }, { wch: 12 }, { wch: 12 },
+    { wch: 18 }, { wch: 18 }, { wch: 30 }, { wch: 18 }, { wch: 35 }, { wch: 12 }, { wch: 12 },
   ];
   XLSX.utils.book_append_sheet(wb, ws1, 'Órdenes');
 

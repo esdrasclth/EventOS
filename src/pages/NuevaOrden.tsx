@@ -6,6 +6,7 @@ import {
   Camera,
   X,
   Save,
+  Clock,
 } from 'lucide-react';
 import type { ItemOrden, EstadoOrden, OrdenFormData } from '../types';
 import { createOrden, updateOrden, getOrden, uploadImagen } from '../services/firebase';
@@ -19,11 +20,42 @@ const ESTADOS: { value: EstadoOrden; label: string; color: string }[] = [
   { value: 'pagado',     label: 'Pagado',     color: '#22C55E' },
 ];
 
-function calcularFechaRetiro(fecha: string, diasRenta: number): string {
-  if (!fecha || !diasRenta) return '';
-  const d = new Date(fecha + 'T00:00:00');
-  d.setDate(d.getDate() + diasRenta);
-  return d.toISOString().split('T')[0];
+function formatTime12(time: string): string {
+  if (!time) return '';
+  const [h, m] = time.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+function calcularDuracion(
+  fecha: string, horaInicio: string,
+  fechaFin: string, horaFin: string,
+): string | null {
+  if (!fecha || !fechaFin || !horaInicio || !horaFin) return null;
+  const start = new Date(`${fecha}T${horaInicio}:00`);
+  const end = new Date(`${fechaFin}T${horaFin}:00`);
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs <= 0) return null;
+
+  if (fecha === fechaFin) {
+    const diffMins = Math.round(diffMs / 60000);
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    let durStr = '';
+    if (hours > 0 && mins > 0) durStr = `${hours}h ${mins}min`;
+    else if (hours > 0) durStr = `${hours} hora${hours !== 1 ? 's' : ''}`;
+    else durStr = `${mins} min`;
+    return `Renta de ${durStr} · retiro a las ${formatTime12(horaFin)}`;
+  } else {
+    const DAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const endDate = new Date(fechaFin + 'T00:00:00');
+    const [, m, d] = fechaFin.split('-');
+    const dateStr = `${DAYS[endDate.getDay()]} ${parseInt(d)} ${MONTHS[parseInt(m) - 1]}`;
+    const diffDays = Math.round(diffMs / 86400000);
+    return `Renta de ${diffDays} día${diffDays !== 1 ? 's' : ''} · retiro ${dateStr}`;
+  }
 }
 
 const EMPTY_ITEM: ItemOrden = { producto: '', cantidad: 1, precio: 0 };
@@ -39,11 +71,14 @@ const NuevaOrden: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loadingOrden, setLoadingOrden] = useState(isEdit);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const [form, setForm] = useState<Omit<OrdenFormData, 'total'>>({
     nombreEvento: '',
-    fecha: new Date().toISOString().split('T')[0],
-    diasRenta: 1,
-    fechaRetiro: calcularFechaRetiro(new Date().toISOString().split('T')[0], 1),
+    fecha: today,
+    horaInicio: '09:00',
+    fechaFin: today,
+    horaFin: '18:00',
     nombre: '',
     telefono: '',
     direccion: '',
@@ -60,8 +95,9 @@ const NuevaOrden: React.FC = () => {
       setForm({
         nombreEvento: o.nombreEvento ?? '',
         fecha: o.fecha,
-        diasRenta: o.diasRenta ?? 1,
-        fechaRetiro: o.fechaRetiro ?? calcularFechaRetiro(o.fecha, o.diasRenta ?? 1),
+        horaInicio: o.horaInicio ?? '09:00',
+        fechaFin: o.fechaFin ?? o.fechaRetiro ?? o.fecha,
+        horaFin: o.horaFin ?? '18:00',
         nombre: o.nombre,
         telefono: o.telefono,
         direccion: o.direccion,
@@ -116,7 +152,15 @@ const NuevaOrden: React.FC = () => {
         imagenUrl = await uploadImagen(imageFile);
       }
 
-      const data: OrdenFormData = { ...form, imagenUrl };
+      const startMs = new Date((form.fechaFin ?? form.fecha) + 'T00:00:00').getTime();
+      const endMs = new Date(form.fecha + 'T00:00:00').getTime();
+      const diasRenta = Math.max(1, Math.round((startMs - endMs) / 86400000));
+      const data: OrdenFormData = {
+        ...form,
+        imagenUrl,
+        fechaRetiro: form.fechaFin ?? form.fecha,
+        diasRenta,
+      };
 
       if (isEdit && id) {
         await updateOrden(id, data);
@@ -179,55 +223,66 @@ const NuevaOrden: React.FC = () => {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Fecha del evento</label>
-            <input
-              className={styles.input}
-              type="date"
-              value={form.fecha}
-              onChange={(e) => {
-                const nuevaFecha = e.target.value;
-                setForm((prev) => ({
-                  ...prev,
-                  fecha: nuevaFecha,
-                  fechaRetiro: calcularFechaRetiro(nuevaFecha, prev.diasRenta),
-                }));
-              }}
-              required
-            />
-          </div>
+            <label className={styles.label}>Fecha y hora del evento</label>
+            <div className={styles.datetimeBlock}>
+              <div className={styles.datetimeSegment}>
+                <span className={styles.datetimeSegmentLabel}>Empieza</span>
+                <div className={styles.datetimeInputRow}>
+                  <input
+                    className={styles.input}
+                    type="date"
+                    value={form.fecha}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm((prev) => ({
+                        ...prev,
+                        fecha: val,
+                        fechaFin: prev.fechaFin && prev.fechaFin < val ? val : prev.fechaFin,
+                      }));
+                    }}
+                    required
+                  />
+                  <input
+                    className={`${styles.input} ${styles.timeInput}`}
+                    type="time"
+                    value={form.horaInicio ?? '09:00'}
+                    onChange={(e) => setField('horaInicio', e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Días de renta</label>
-            <div className={styles.diasRentaControl}>
-              <button
-                type="button"
-                className={styles.diasBtn}
-                onClick={() => {
-                  const dias = Math.max(1, form.diasRenta - 1);
-                  setForm((prev) => ({ ...prev, diasRenta: dias, fechaRetiro: calcularFechaRetiro(prev.fecha, dias) }));
-                }}
-                disabled={form.diasRenta <= 1}
-              >−</button>
-              <span className={styles.diasValue}>{form.diasRenta} día{form.diasRenta !== 1 ? 's' : ''}</span>
-              <button
-                type="button"
-                className={styles.diasBtn}
-                onClick={() => {
-                  const dias = Math.min(30, form.diasRenta + 1);
-                  setForm((prev) => ({ ...prev, diasRenta: dias, fechaRetiro: calcularFechaRetiro(prev.fecha, dias) }));
-                }}
-                disabled={form.diasRenta >= 30}
-              >+</button>
+              <div className={styles.datetimeDivider} />
+
+              <div className={styles.datetimeSegment}>
+                <span className={styles.datetimeSegmentLabel}>Termina</span>
+                <div className={styles.datetimeInputRow}>
+                  <input
+                    className={styles.input}
+                    type="date"
+                    value={form.fechaFin ?? form.fecha}
+                    min={form.fecha}
+                    onChange={(e) => setField('fechaFin', e.target.value)}
+                    required
+                  />
+                  <input
+                    className={`${styles.input} ${styles.timeInput}`}
+                    type="time"
+                    value={form.horaFin ?? '18:00'}
+                    onChange={(e) => setField('horaFin', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {(() => {
+                const dur = calcularDuracion(form.fecha, form.horaInicio ?? '', form.fechaFin ?? '', form.horaFin ?? '');
+                return dur ? (
+                  <div className={styles.durationHint}>
+                    <Clock size={13} />
+                    {dur}
+                  </div>
+                ) : null;
+              })()}
             </div>
-            {form.fechaRetiro && (
-              <p className={styles.fechaRetiroHint}>
-                Retiro: {(() => {
-                  const [y, m, d] = form.fechaRetiro.split('-');
-                  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-                  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
-                })()}
-              </p>
-            )}
           </div>
 
           <div className={styles.field}>

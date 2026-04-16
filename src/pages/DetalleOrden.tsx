@@ -69,6 +69,46 @@ function formatCurrency(amount: number): string {
   return `$ ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
 }
 
+function formatDatetime(date: string, time?: string): string {
+  const [y, m, d] = date.split('-');
+  const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const dateStr = `${parseInt(d)} ${MONTHS[parseInt(m)-1]} ${y}`;
+  if (!time) return dateStr;
+  const [h, min] = time.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${dateStr} · ${hour}:${String(min).padStart(2,'0')} ${period}`;
+}
+
+function calcularDuracionDetalle(orden: { fecha: string; horaInicio?: string; fechaFin?: string; horaFin?: string; diasRenta?: number; fechaRetiro?: string }): string | null {
+  const fechaFin = orden.fechaFin ?? orden.fechaRetiro;
+  if (!fechaFin) return null;
+
+  if (orden.horaInicio && orden.horaFin) {
+    const start = new Date(`${orden.fecha}T${orden.horaInicio}:00`);
+    const end = new Date(`${fechaFin}T${orden.horaFin}:00`);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs <= 0) return null;
+
+    if (orden.fecha === fechaFin) {
+      const diffMins = Math.round(diffMs / 60000);
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      if (hours > 0 && mins > 0) return `${hours}h ${mins}min`;
+      if (hours > 0) return `${hours} hora${hours !== 1 ? 's' : ''}`;
+      return `${mins} min`;
+    } else {
+      const diffDays = Math.round(diffMs / 86400000);
+      return `${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+    }
+  }
+
+  if (orden.diasRenta && orden.diasRenta > 1) {
+    return `${orden.diasRenta} día${orden.diasRenta !== 1 ? 's' : ''}`;
+  }
+  return null;
+}
+
 const DetalleOrden: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -232,17 +272,31 @@ const DetalleOrden: React.FC = () => {
             <div className={styles.infoRow}>
               <span className={styles.infoIcon}><Calendar size={14} /></span>
               <div>
-                <p className={styles.infoLabel}>Fecha del evento</p>
-                <p className={styles.infoValue}>{formatDate(orden.fecha)}</p>
+                <p className={styles.infoLabel}>Empieza</p>
+                <p className={styles.infoValue}>{formatDatetime(orden.fecha, orden.horaInicio)}</p>
               </div>
             </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoIcon}><Calendar size={14} /></span>
-              <div>
-                <p className={styles.infoLabel}>Fecha de retiro ({orden.diasRenta ?? 1} día{(orden.diasRenta ?? 1) !== 1 ? 's' : ''} de renta)</p>
-                <p className={styles.infoValue}>{orden.fechaRetiro ? formatDate(orden.fechaRetiro) : '—'}</p>
+            {(orden.fechaFin || orden.fechaRetiro) && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoIcon}><Calendar size={14} /></span>
+                <div>
+                  <p className={styles.infoLabel}>Termina</p>
+                  <p className={styles.infoValue}>{formatDatetime(orden.fechaFin ?? orden.fechaRetiro!, orden.horaFin)}</p>
+                </div>
               </div>
-            </div>
+            )}
+            {(() => {
+              const dur = calcularDuracionDetalle(orden);
+              return dur ? (
+                <div className={styles.infoRow}>
+                  <span className={styles.infoIcon}><Clock size={14} /></span>
+                  <div>
+                    <p className={styles.infoLabel}>Duración</p>
+                    <p className={styles.infoValue}>{dur}</p>
+                  </div>
+                </div>
+              ) : null;
+            })()}
           </div>
         </CollapseSection>
 

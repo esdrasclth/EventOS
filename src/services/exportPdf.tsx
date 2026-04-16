@@ -222,13 +222,13 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
           <Text style={styles.value}>{orden.direccion}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Fecha del evento:</Text>
-          <Text style={styles.value}>{formatDate(orden.fecha)}</Text>
+          <Text style={styles.label}>Empieza:</Text>
+          <Text style={styles.value}>{formatDate(orden.fecha)}{orden.horaInicio ? ` · ${orden.horaInicio}` : ''}</Text>
         </View>
-        {orden.fechaRetiro ? (
+        {(orden.fechaFin || orden.fechaRetiro) ? (
           <View style={styles.row}>
-            <Text style={styles.label}>Fecha de retiro:</Text>
-            <Text style={styles.value}>{formatDate(orden.fechaRetiro)} ({orden.diasRenta ?? 1} día{(orden.diasRenta ?? 1) !== 1 ? 's' : ''} de renta)</Text>
+            <Text style={styles.label}>Termina:</Text>
+            <Text style={styles.value}>{formatDate(orden.fechaFin ?? orden.fechaRetiro!)}{orden.horaFin ? ` · ${orden.horaFin}` : ''}</Text>
           </View>
         ) : null}
       </View>
