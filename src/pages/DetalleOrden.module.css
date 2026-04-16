@@ -56,6 +56,14 @@
   background: rgba(0,0,0,0.6);
 }
 
+.heroActionNotif {
+  background: rgba(234, 179, 8, 0.7);
+}
+
+.heroActionNotif:active {
+  background: rgba(234, 179, 8, 0.9);
+}
+
 .heroActionDanger {
   background: rgba(239,68,68,0.6);
 }

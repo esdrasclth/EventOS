@@ -208,6 +208,35 @@ export async function savePushSubscription(
   });
 }
 
+// ── Per-order notification preferences ───────────────────────────────────────
+
+export async function setOrderNotification(
+  ordenId: string,
+  enabled: boolean,
+): Promise<void> {
+  const userId = auth.currentUser?.uid;
+  if (!userId || USE_MOCK_DATA) return;
+  const docId = `${userId}_${ordenId}`;
+  if (enabled) {
+    await setDoc(doc(db, 'orderNotifications', docId), {
+      userId,
+      ordenId,
+      enabled: true,
+      updatedAt: Timestamp.now(),
+    });
+  } else {
+    await deleteDoc(doc(db, 'orderNotifications', docId));
+  }
+}
+
+export async function getOrderNotification(ordenId: string): Promise<boolean> {
+  const userId = auth.currentUser?.uid;
+  if (!userId || USE_MOCK_DATA) return false;
+  const docId = `${userId}_${ordenId}`;
+  const snap = await getDoc(doc(db, 'orderNotifications', docId));
+  return snap.exists() && snap.data()?.enabled === true;
+}
+
 export async function uploadImagen(file: File): Promise<string> {
   if (USE_MOCK_DATA) {
     return URL.createObjectURL(file);

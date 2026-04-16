@@ -1,7 +1,8 @@
 /**
  * Netlify Scheduled Function — runs every 15 minutes
  * Checks upcoming orders and sends push notifications
- * at: 30 minutes before, 2 hours before, and 1 day before the event.
+ * only to users who enabled notifications for each specific order.
+ * Windows: 30 minutes, 2 hours, and 1 day before the event.
  */
 import type { Config } from '@netlify/functions';
 import webpush from 'web-push';
@@ -24,15 +25,13 @@ if (!getApps().length) {
 const db = getFirestore();
 
 // ── Notification windows ──────────────────────────────────────────────────────
-// Each entry: how many minutes before the event to notify, and the label shown
 const WINDOWS = [
   { minutes: 30,   label: '30 minutos' },
   { minutes: 120,  label: '2 horas'    },
   { minutes: 1440, label: '1 día'      },
 ];
 
-// Half the cron interval (7.5 min) — a notification is due if the notify-at
-// time falls within ±TOLERANCE of now.
+// Half the cron interval (7.5 min)
 const TOLERANCE_MS = 7.5 * 60 * 1000;
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -40,65 +39,98 @@ const TOLERANCE_MS = 7.5 * 60 * 1000;
 export default async function handler() {
   const now = Date.now();
 
-  // Load all push subscriptions
-  const subsSnap = await db.collection('pushSubscriptions').get();
-  if (subsSnap.empty) return new Response('no subscribers', { status: 200 });
-
-  // Load pending orders (not cancelled or paid)
-  const ordersSnap = await db
-    .collection('ordenes')
-    .where('estado', 'not-in', ['cancelado', 'pagado'])
+  // Load all per-order notification preferences (enabled)
+  const notifPrefsSnap = await db.collection('orderNotifications')
+    .where('enabled', '==', true)
     .get();
 
+  if (notifPrefsSnap.empty) return new Response('no notification preferences', { status: 200 });
+
+  // Build a map: ordenId → Set<userId>
+  const orderUsers = new Map<string, Set<string>>();
+  for (const doc of notifPrefsSnap.docs) {
+    const { ordenId, userId } = doc.data() as { ordenId: string; userId: string };
+    if (!orderUsers.has(ordenId)) orderUsers.set(ordenId, new Set());
+    orderUsers.get(ordenId)!.add(userId);
+  }
+
+  // Load push subscriptions for those users
+  const subsSnap = await db.collection('pushSubscriptions').get();
+  const userSubs = new Map<string, webpush.PushSubscription[]>();
+  for (const subDoc of subsSnap.docs) {
+    const { userId, subscription } = subDoc.data() as {
+      userId: string;
+      subscription: webpush.PushSubscription;
+    };
+    if (!userSubs.has(userId)) userSubs.set(userId, []);
+    userSubs.get(userId)!.push(subscription);
+  }
+
+  // Load relevant orders
+  const orderIds = [...orderUsers.keys()];
   const sends: Promise<unknown>[] = [];
 
-  for (const orderDoc of ordersSnap.docs) {
-    const o = orderDoc.data() as {
-      nombre: string;
-      nombreEvento?: string;
-      fecha: string;
-      horaInicio?: string;
-      direccion?: string;
-    };
+  // Firestore 'in' queries are limited to 30 items
+  for (let i = 0; i < orderIds.length; i += 30) {
+    const batch = orderIds.slice(i, i + 30);
+    const ordersSnap = await db
+      .collection('ordenes')
+      .where('__name__', 'in', batch)
+      .get();
 
-    if (!o.fecha || !o.horaInicio) continue;
+    for (const orderDoc of ordersSnap.docs) {
+      const o = orderDoc.data() as {
+        nombre: string;
+        nombreEvento?: string;
+        fecha: string;
+        horaInicio?: string;
+        direccion?: string;
+        estado?: string;
+      };
 
-    const eventMs = new Date(`${o.fecha}T${o.horaInicio}:00`).getTime();
-    const eventName = o.nombreEvento || o.nombre;
+      if (!o.fecha || !o.horaInicio) continue;
+      if (o.estado === 'cancelado' || o.estado === 'pagado') continue;
 
-    for (const { minutes, label } of WINDOWS) {
-      const notifyAt = eventMs - minutes * 60_000;
-      if (Math.abs(now - notifyAt) > TOLERANCE_MS) continue;
+      const eventMs = new Date(`${o.fecha}T${o.horaInicio}:00`).getTime();
+      const eventName = o.nombreEvento || o.nombre;
+      const subscribedUsers = orderUsers.get(orderDoc.id);
+      if (!subscribedUsers) continue;
 
-      // Deduplication: mark this notification as sent
-      const sentId = `${orderDoc.id}-${minutes}`;
-      const sentRef = db.collection('notificationsSent').doc(sentId);
-      const sentDoc = await sentRef.get();
-      if (sentDoc.exists) continue;
+      for (const { minutes, label } of WINDOWS) {
+        const notifyAt = eventMs - minutes * 60_000;
+        if (Math.abs(now - notifyAt) > TOLERANCE_MS) continue;
 
-      await sentRef.set({ sentAt: Timestamp.now() });
+        for (const userId of subscribedUsers) {
+          const sentId = `${orderDoc.id}-${minutes}-${userId}`;
+          const sentRef = db.collection('notificationsSent').doc(sentId);
+          const sentDoc = await sentRef.get();
+          if (sentDoc.exists) continue;
 
-      // Queue a push for each subscribed device
-      for (const subDoc of subsSnap.docs) {
-        const { subscription } = subDoc.data() as { subscription: webpush.PushSubscription };
-        sends.push(
-          webpush
-            .sendNotification(
-              subscription,
-              JSON.stringify({
-                title: eventName,
-                body: `Empieza en ${label}${o.direccion ? ` · ${o.direccion}` : ''}`,
-                tag: sentId,
-                data: { ordenId: orderDoc.id },
-              }),
-            )
-            .catch((err: { statusCode?: number }) => {
-              // 410 = subscription expired, remove it
-              if (err.statusCode === 410) {
-                subDoc.ref.delete();
-              }
-            }),
-        );
+          await sentRef.set({ sentAt: Timestamp.now() });
+
+          const subs = userSubs.get(userId);
+          if (!subs) continue;
+
+          for (const subscription of subs) {
+            sends.push(
+              webpush
+                .sendNotification(
+                  subscription,
+                  JSON.stringify({
+                    title: eventName,
+                    body: `Empieza en ${label}${o.direccion ? ` · ${o.direccion}` : ''}`,
+                    tag: `${orderDoc.id}-${minutes}`,
+                    data: { ordenId: orderDoc.id },
+                  }),
+                )
+                .catch((err: { statusCode?: number }) => {
+                  if (err.statusCode === 410) {
+                    db.collection('pushSubscriptions').doc(userId).delete();
+                  }
+                }),
+            );
+          }
+        }
       }
     }
   }

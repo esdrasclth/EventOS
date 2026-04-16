@@ -6,6 +6,7 @@ import BottomNav from './components/BottomNav';
 import NombreModal from './components/NombreModal';
 import UpdateBanner from './components/UpdateBanner';
 import OfflineBanner from './components/OfflineBanner';
+import { initNotificationScheduler } from './services/notificationScheduler';
 
 const Login      = lazy(() => import('./pages/Login'));
 const Home       = lazy(() => import('./pages/Home'));
@@ -68,6 +69,10 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    initNotificationScheduler();
+  }, []);
+
   return <AppRoutes />;
 }
 

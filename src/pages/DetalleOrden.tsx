@@ -17,6 +17,8 @@ import {
   Edit3,
   Clock,
   Camera,
+  Bell,
+  BellRing,
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
@@ -30,7 +32,7 @@ const exportToPdf = async (orden: import('../types').Orden) => {
 };
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
-import NotificationButton from '../components/NotificationButton';
+import { useOrderNotification } from '../hooks/useOrderNotification';
 import styles from './DetalleOrden.module.css';
 
 const ESTADO_LABELS: Record<string, string> = {
@@ -128,6 +130,13 @@ const DetalleOrden: React.FC = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const notifName = orden?.nombreEvento || orden?.nombre || '';
+  const { enabled: notifEnabled, toggle: toggleNotif } = useOrderNotification(
+    id ?? '',
+    notifName,
+    orden?.fecha ?? '',
+    orden?.horaInicio,
+  );
 
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -230,6 +239,13 @@ const DetalleOrden: React.FC = () => {
           <ArrowLeft size={20} />
         </button>
         <div className={styles.heroActions}>
+          <button
+            className={`${styles.heroActionBtn} ${notifEnabled ? styles.heroActionNotif : ''}`}
+            onClick={toggleNotif}
+            aria-label={notifEnabled ? 'Desactivar notificación' : 'Activar notificación'}
+          >
+            {notifEnabled ? <BellRing size={18} /> : <Bell size={18} />}
+          </button>
           {puedeEditar(orden.estado) && (
             <button
               className={styles.heroActionBtn}
@@ -464,11 +480,6 @@ const DetalleOrden: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Push notification opt-in */}
-      <div className={styles.notifRow}>
-        <NotificationButton />
       </div>
 
       {/* Bottom actions */}
