@@ -348,7 +348,7 @@ const DetalleOrden: React.FC = () => {
 
         {/* Image */}
         <CollapseSection
-          title="Imagen de tarima"
+          title="Imagen"
           icon={<Image size={16} />}
           defaultOpen={false}
         >

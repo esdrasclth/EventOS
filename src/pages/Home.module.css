@@ -228,6 +228,15 @@
   text-transform: capitalize;
 }
 
+.nextEventMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .nextEventArrow {
   flex-shrink: 0;
   width: 32px;

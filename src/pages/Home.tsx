@@ -46,7 +46,11 @@ const Home: React.FC = () => {
         const d = new Date(o.fecha + 'T00:00:00');
         return d >= today && !['entregado', 'pagado', 'cancelado'].includes(o.estado);
       })
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+      .sort((a, b) => {
+        const aMs = new Date(`${a.fecha}T${a.horaInicio ?? '00:00'}:00`).getTime();
+        const bMs = new Date(`${b.fecha}T${b.horaInicio ?? '00:00'}:00`).getTime();
+        return aMs - bMs;
+      });
 
     return {
       totalMes: thisMonth.length,
@@ -105,14 +109,23 @@ const Home: React.FC = () => {
             </div>
             <div className={styles.nextEventInfo}>
               <span className={styles.nextEventLabel}>Próximo evento</span>
-              <span className={styles.nextEventName}>{stats.proximoEvento.nombre}</span>
+              <span className={styles.nextEventName}>{stats.proximoEvento.nombreEvento || stats.proximoEvento.nombre}</span>
               <span className={styles.nextEventDate}>
                 {new Date(stats.proximoEvento.fecha + 'T00:00:00').toLocaleDateString('es-HN', {
                   weekday: 'short',
                   day: 'numeric',
                   month: 'short',
                 })}
+                {stats.proximoEvento.horaInicio && ` · ${(() => {
+                  const [h, m] = stats.proximoEvento.horaInicio!.split(':').map(Number);
+                  const p = h >= 12 ? 'PM' : 'AM';
+                  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${p}`;
+                })()}`}
               </span>
+              <span className={styles.nextEventMeta}>{stats.proximoEvento.nombre}</span>
+              {stats.proximoEvento.direccion && (
+                <span className={styles.nextEventMeta}>{stats.proximoEvento.direccion}</span>
+              )}
             </div>
             <button
               className={styles.nextEventArrow}

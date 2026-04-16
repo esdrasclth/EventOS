@@ -82,7 +82,11 @@ const Ordenes: React.FC = () => {
         break;
     }
 
-    return result.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    return result.sort((a, b) => {
+      const aMs = new Date(`${a.fecha}T${a.horaInicio ?? '00:00'}:00`).getTime();
+      const bMs = new Date(`${b.fecha}T${b.horaInicio ?? '00:00'}:00`).getTime();
+      return aMs - bMs;
+    });
   }, [ordenes, search, filter]);
 
   return (

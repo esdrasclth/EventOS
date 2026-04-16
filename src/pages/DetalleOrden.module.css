@@ -66,15 +66,17 @@
 
 .estadoBadge {
   position: absolute;
-  bottom: var(--space-base);
+  top: calc(var(--space-xl) + 52px);
   right: var(--space-base);
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--color-white);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+  z-index: 10;
 }
 
 .heroSkeleton {
@@ -144,6 +146,7 @@
 .telefonoRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-sm);
 }
 
@@ -151,9 +154,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   background: #22C55E;
   color: #fff;
   flex-shrink: 0;
