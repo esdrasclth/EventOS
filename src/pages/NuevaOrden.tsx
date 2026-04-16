@@ -145,6 +145,12 @@ const NuevaOrden: React.FC = () => {
     if (!form.fecha) return alert('La fecha del evento es requerida');
     if (form.items.some((i) => !i.producto.trim())) return alert('Todos los productos necesitan nombre');
 
+    if (form.fecha && form.fechaFin && form.horaInicio && form.horaFin) {
+      const startMs = new Date(`${form.fecha}T${form.horaInicio}:00`).getTime();
+      const endMs   = new Date(`${form.fechaFin}T${form.horaFin}:00`).getTime();
+      if (endMs <= startMs) return alert('La fecha y hora de "Termina" debe ser después de "Empieza"');
+    }
+
     setSaving(true);
     try {
       let imagenUrl = form.imagenUrl;
@@ -246,7 +252,21 @@ const NuevaOrden: React.FC = () => {
                     className={`${styles.input} ${styles.timeInput}`}
                     type="time"
                     value={form.horaInicio ?? '09:00'}
-                    onChange={(e) => setField('horaInicio', e.target.value)}
+                    onChange={(e) => {
+                      const newHora = e.target.value;
+                      setForm((prev) => {
+                        // If same day and horaFin is now <= new horaInicio, push horaFin forward
+                        const sameDayInvalid =
+                          prev.fechaFin === prev.fecha &&
+                          prev.horaFin !== undefined &&
+                          prev.horaFin <= newHora;
+                        return {
+                          ...prev,
+                          horaInicio: newHora,
+                          ...(sameDayInvalid ? { horaFin: newHora } : {}),
+                        };
+                      });
+                    }}
                   />
                 </div>
               </div>
