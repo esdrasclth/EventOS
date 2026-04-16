@@ -36,6 +36,7 @@ function AppRoutes() {
       <UpdateBanner />
       {needsName && <NombreModal onDone={(n) => setDisplayName(n)} />}
       <Suspense fallback={null}>
+      <div key={location.pathname} className="page-transition">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
@@ -57,6 +58,7 @@ function AppRoutes() {
         />
       </Routes>
 
+      </div>
       </Suspense>
       {user && !hideNav && location.pathname !== '/login' && <BottomNav />}
     </>

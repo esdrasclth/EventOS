@@ -7,7 +7,13 @@ const UpdateBanner: React.FC = () => {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return;
+      // Check for updates every 60 minutes while the app is open
+      setInterval(() => registration.update(), 60 * 60 * 1000);
+    },
+  });
 
   const [updating, setUpdating] = useState(false);
   const [progress, setProgress] = useState(0);

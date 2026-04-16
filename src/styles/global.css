@@ -65,26 +65,13 @@ img {
 }
 
 /* Page transitions */
-.page-enter {
-  opacity: 0;
-  transform: translateX(20px);
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.page-enter-active {
-  opacity: 1;
-  transform: translateX(0);
-  transition: opacity var(--transition-base), transform var(--transition-base);
-}
-
-.page-exit {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.page-exit-active {
-  opacity: 0;
-  transform: translateX(-20px);
-  transition: opacity var(--transition-base), transform var(--transition-base);
+.page-transition {
+  animation: pageFadeIn 0.18s ease both;
 }
 
 /* Utility classes */
