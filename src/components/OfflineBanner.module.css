@@ -1,0 +1,32 @@
+.banner {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  animation: slideUp 0.3s ease-out both;
+}
+
+@keyframes slideUp {
+  from { transform: translateX(-50%) translateY(16px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+.offline {
+  background: #1a1a1a;
+  color: #f3f4f6;
+}
+
+.online {
+  background: #166534;
+  color: #dcfce7;
+}

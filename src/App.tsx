@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import BottomNav from './components/BottomNav';
 import NombreModal from './components/NombreModal';
 import UpdateBanner from './components/UpdateBanner';
+import OfflineBanner from './components/OfflineBanner';
 
 const Login      = lazy(() => import('./pages/Login'));
 const Home       = lazy(() => import('./pages/Home'));
@@ -34,6 +35,7 @@ function AppRoutes() {
   return (
     <>
       <UpdateBanner />
+      <OfflineBanner />
       {needsName && <NombreModal onDone={(n) => setDisplayName(n)} />}
       <Suspense fallback={null}>
       <div key={location.pathname} className="page-transition">

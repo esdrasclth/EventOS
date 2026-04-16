@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen } from '../services/firebase';
 import { exportToExcel } from '../services/exportExcel';
 // Lazy-load react-pdf only when user actually exports — it's 1.5MB
@@ -119,6 +120,7 @@ const DetalleOrden: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { orden, loading, error } = useOrden(id ?? '');
+  const { isOnline } = useNetworkStatus();
   const [marking, setMarking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -190,12 +192,12 @@ const DetalleOrden: React.FC = () => {
   async function handleDelete() {
     if (!orden) return;
     if (!confirm(`¿Eliminar la orden de ${orden.nombre}?`)) return;
-    setDeleting(true);
+    const id = orden.id;
+    navigate('/ordenes', { replace: true });
     try {
-      await deleteOrden(orden.id);
-      navigate('/ordenes', { replace: true });
-    } finally {
-      setDeleting(false);
+      await deleteOrden(id);
+    } catch (err) {
+      console.error('Error al eliminar orden:', err);
     }
   }
 
@@ -387,11 +389,12 @@ const DetalleOrden: React.FC = () => {
           )}
           <button
             className={styles.uploadImgBtn}
-            onClick={() => fileRef.current?.click()}
-            disabled={uploadingImg}
+            onClick={() => isOnline && fileRef.current?.click()}
+            disabled={uploadingImg || !isOnline}
+            title={!isOnline ? 'Sin conexión' : undefined}
           >
             <Camera size={18} />
-            {uploadingImg ? 'Subiendo...' : orden.imagenUrl ? 'Cambiar imagen' : 'Agregar imagen'}
+            {uploadingImg ? 'Subiendo...' : !isOnline ? 'Sin conexión para subir' : orden.imagenUrl ? 'Cambiar imagen' : 'Agregar imagen'}
           </button>
           <input
             ref={fileRef}
