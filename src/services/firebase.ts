@@ -7,6 +7,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -193,6 +194,18 @@ export async function deleteOrden(id: string): Promise<void> {
     return;
   }
   await deleteDoc(doc(db, 'ordenes', id));
+}
+
+export async function savePushSubscription(
+  userId: string,
+  subscription: PushSubscriptionJSON,
+): Promise<void> {
+  if (USE_MOCK_DATA) return;
+  await setDoc(doc(db, 'pushSubscriptions', userId), {
+    userId,
+    subscription,
+    updatedAt: Timestamp.now(),
+  });
 }
 
 export async function uploadImagen(file: File): Promise<string> {

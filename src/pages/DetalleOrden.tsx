@@ -30,6 +30,7 @@ const exportToPdf = async (orden: import('../types').Orden) => {
 };
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
+import NotificationButton from '../components/NotificationButton';
 import styles from './DetalleOrden.module.css';
 
 const ESTADO_LABELS: Record<string, string> = {
@@ -123,7 +124,7 @@ const DetalleOrden: React.FC = () => {
   const { isOnline } = useNetworkStatus();
   const [marking, setMarking] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -463,6 +464,11 @@ const DetalleOrden: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Push notification opt-in */}
+      <div className={styles.notifRow}>
+        <NotificationButton />
       </div>
 
       {/* Bottom actions */}

@@ -341,6 +341,10 @@
   color: var(--color-text-secondary);
 }
 
+.notifRow {
+  padding: 0 var(--space-base) var(--space-base);
+}
+
 /* Bottom actions */
 .actions {
   position: fixed;
