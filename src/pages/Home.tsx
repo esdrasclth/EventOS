@@ -29,32 +29,36 @@ const Home: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   const stats = useMemo(() => {
-    const thisMonth = ordenes.filter((o) => {
-      const d = new Date(o.fecha);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
+    const todayMs = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); })();
+    const EXCLUDED = new Set(['entregado', 'pagado', 'cancelado']);
 
-    const ingresos = thisMonth
-      .filter((o) => o.estado === 'pagado')
-      .reduce((sum, o) => sum + o.total, 0);
+    let totalMes = 0;
+    let ingresosMes = 0;
+    const upcomingRaw: Array<{ orden: typeof ordenes[0]; startMs: number }> = [];
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    for (const o of ordenes) {
+      // Parse fecha once per order
+      const [y, m] = o.fecha.split('-').map(Number);
+      const fechaMs = new Date(o.fecha + 'T00:00:00').getTime();
 
-    const upcoming = [...ordenes]
-      .filter((o) => {
-        const d = new Date(o.fecha + 'T00:00:00');
-        return d >= today && !['entregado', 'pagado', 'cancelado'].includes(o.estado);
-      })
-      .sort((a, b) => {
-        const aMs = new Date(`${a.fecha}T${a.horaInicio ?? '00:00'}:00`).getTime();
-        const bMs = new Date(`${b.fecha}T${b.horaInicio ?? '00:00'}:00`).getTime();
-        return aMs - bMs;
-      });
+      if (m - 1 === currentMonth && y === currentYear) {
+        totalMes++;
+        if (o.estado === 'pagado') ingresosMes += o.total;
+      }
+
+      if (fechaMs >= todayMs && !EXCLUDED.has(o.estado)) {
+        const startMs = new Date(`${o.fecha}T${o.horaInicio ?? '00:00'}:00`).getTime();
+        upcomingRaw.push({ orden: o, startMs });
+      }
+    }
+
+    const upcoming = upcomingRaw
+      .sort((a, b) => a.startMs - b.startMs)
+      .map(({ orden }) => orden);
 
     return {
-      totalMes: thisMonth.length,
-      ingresosMes: ingresos,
+      totalMes,
+      ingresosMes,
       proximoEvento: upcoming[0],
       proximasOrdenes: upcoming.slice(0, 3),
     };

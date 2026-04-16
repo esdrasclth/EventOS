@@ -372,9 +372,13 @@ const DetalleOrden: React.FC = () => {
         >
           {orden.imagenUrl && (
             <img
-              src={orden.imagenUrl}
+              src={orden.imagenUrl.includes('cloudinary.com')
+                ? orden.imagenUrl.replace('/upload/', '/upload/w_800,q_auto,f_auto/')
+                : orden.imagenUrl}
               alt="Imagen"
               className={styles.tarimImage}
+              loading="lazy"
+              decoding="async"
             />
           )}
           <button

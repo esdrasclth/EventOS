@@ -10,7 +10,7 @@ interface Props {
   onRemove: (index: number) => void;
 }
 
-const ItemRow: React.FC<Props> = ({ item, index, onChange, onRemove }) => {
+const ItemRow: React.FC<Props> = React.memo(({ item, index, onChange, onRemove }) => {
   const subtotal = item.cantidad * item.precio;
 
   return (
@@ -63,5 +63,7 @@ const ItemRow: React.FC<Props> = ({ item, index, onChange, onRemove }) => {
     </div>
   );
 };
+
+}) as React.FC<Props>;
 
 export default ItemRow;

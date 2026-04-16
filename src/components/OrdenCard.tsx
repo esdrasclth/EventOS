@@ -27,7 +27,7 @@ function formatCurrency(amount: number): string {
   return `$ ${amount.toLocaleString('es-HN')}`;
 }
 
-const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
+const OrdenCard: React.FC<Props> = React.memo(({ orden, animationDelay = 0 }) => {
   const navigate = useNavigate();
   const estado = ESTADO_MAP[orden.estado] ?? ESTADO_MAP.pendiente;
   const totalProductos = orden.items.length;
@@ -74,5 +74,7 @@ const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
     </article>
   );
 };
+
+}) as React.FC<Props>;
 
 export default OrdenCard;

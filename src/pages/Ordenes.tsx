@@ -17,25 +17,18 @@ const FILTERS: FilterChip[] = [
   { id: 'canceladas', label: 'Canceladas' },
 ];
 
-function isToday(dateStr: string): boolean {
-  const today = new Date();
-  const d = new Date(dateStr + 'T00:00:00');
-  return (
-    d.getDate() === today.getDate() &&
-    d.getMonth() === today.getMonth() &&
-    d.getFullYear() === today.getFullYear()
-  );
+// Pre-compute today/week boundaries once per render cycle (not per order)
+function getTodayMs(): number {
+  const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime();
 }
-
-function isThisWeek(dateStr: string): boolean {
+function getWeekBounds(): [number, number] {
   const now = new Date();
-  const d = new Date(dateStr + 'T00:00:00');
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 7);
-  return d >= startOfWeek && d < endOfWeek;
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay());
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return [start.getTime(), end.getTime()];
 }
 
 const Ordenes: React.FC = () => {
@@ -44,50 +37,43 @@ const Ordenes: React.FC = () => {
   const [filter, setFilter] = useState('todas');
 
   const filtered = useMemo(() => {
-    let result = [...ordenes];
+    const q = search.trim().toLowerCase();
+    const todayMs = q || filter === 'hoy' || filter === 'semana' ? getTodayMs() : 0;
+    const weekBounds = filter === 'semana' ? getWeekBounds() : null;
 
-    // Text search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (o) =>
+    // Single pass: search + filter + collect startMs for sorting
+    const result: Array<{ orden: typeof ordenes[0]; startMs: number }> = [];
+
+    for (const o of ordenes) {
+      // Text search
+      if (q) {
+        const hit =
           o.nombre.toLowerCase().includes(q) ||
           (o.nombreEvento ?? '').toLowerCase().includes(q) ||
           o.direccion.toLowerCase().includes(q) ||
-          o.telefono.includes(q)
-      );
+          o.telefono.includes(q);
+        if (!hit) continue;
+      }
+
+      // Filter chip
+      if (filter !== 'todas') {
+        const fechaMs = new Date(o.fecha + 'T00:00:00').getTime();
+        if (filter === 'hoy' && fechaMs !== todayMs) continue;
+        if (filter === 'semana' && weekBounds && (fechaMs < weekBounds[0] || fechaMs >= weekBounds[1])) continue;
+        if (filter === 'pendientes'  && o.estado !== 'pendiente')  continue;
+        if (filter === 'confirmadas' && o.estado !== 'confirmado') continue;
+        if (filter === 'entregadas'  && o.estado !== 'entregado')  continue;
+        if (filter === 'pagadas'     && o.estado !== 'pagado')     continue;
+        if (filter === 'canceladas'  && o.estado !== 'cancelado')  continue;
+      }
+
+      const startMs = new Date(`${o.fecha}T${o.horaInicio ?? '00:00'}:00`).getTime();
+      result.push({ orden: o, startMs });
     }
 
-    // Filter chips
-    switch (filter) {
-      case 'hoy':
-        result = result.filter((o) => isToday(o.fecha));
-        break;
-      case 'semana':
-        result = result.filter((o) => isThisWeek(o.fecha));
-        break;
-      case 'pendientes':
-        result = result.filter((o) => o.estado === 'pendiente');
-        break;
-      case 'confirmadas':
-        result = result.filter((o) => o.estado === 'confirmado');
-        break;
-      case 'entregadas':
-        result = result.filter((o) => o.estado === 'entregado');
-        break;
-      case 'pagadas':
-        result = result.filter((o) => o.estado === 'pagado');
-        break;
-      case 'canceladas':
-        result = result.filter((o) => o.estado === 'cancelado');
-        break;
-    }
-
-    return result.sort((a, b) => {
-      const aMs = new Date(`${a.fecha}T${a.horaInicio ?? '00:00'}:00`).getTime();
-      const bMs = new Date(`${b.fecha}T${b.horaInicio ?? '00:00'}:00`).getTime();
-      return aMs - bMs;
-    });
+    return result
+      .sort((a, b) => a.startMs - b.startMs)
+      .map(({ orden }) => orden);
   }, [ordenes, search, filter]);
 
   return (

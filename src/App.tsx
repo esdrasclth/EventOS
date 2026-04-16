@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import BottomNav from './components/BottomNav';
 import NombreModal from './components/NombreModal';
 import UpdateBanner from './components/UpdateBanner';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Ordenes from './pages/Ordenes';
-import DetalleOrden from './pages/DetalleOrden';
-import NuevaOrden from './pages/NuevaOrden';
-import Clientes from './pages/Clientes';
-import Actividad from './pages/Actividad';
+
+const Login      = lazy(() => import('./pages/Login'));
+const Home       = lazy(() => import('./pages/Home'));
+const Ordenes    = lazy(() => import('./pages/Ordenes'));
+const DetalleOrden = lazy(() => import('./pages/DetalleOrden'));
+const NuevaOrden = lazy(() => import('./pages/NuevaOrden'));
+const Clientes   = lazy(() => import('./pages/Clientes'));
+const Actividad  = lazy(() => import('./pages/Actividad'));
 
 function shouldHideNav(pathname: string): boolean {
   const detailPattern = /^\/ordenes\/[^/]+(\/editar)?$/;
@@ -34,6 +35,7 @@ function AppRoutes() {
     <>
       <UpdateBanner />
       {needsName && <NombreModal onDone={(n) => setDisplayName(n)} />}
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
@@ -55,6 +57,7 @@ function AppRoutes() {
         />
       </Routes>
 
+      </Suspense>
       {user && !hideNav && location.pathname !== '/login' && <BottomNav />}
     </>
   );
