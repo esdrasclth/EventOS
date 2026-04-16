@@ -22,7 +22,11 @@ import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
 import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen } from '../services/firebase';
 import { exportToExcel } from '../services/exportExcel';
-import { exportToPdf } from '../services/exportPdf';
+// Lazy-load react-pdf only when user actually exports — it's 1.5MB
+const exportToPdf = async (orden: import('../types').Orden) => {
+  const { exportToPdf: fn } = await import('../services/exportPdf');
+  return fn(orden);
+};
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
 import styles from './DetalleOrden.module.css';
