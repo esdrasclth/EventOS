@@ -13,9 +13,11 @@ import {
   deleteDoc,
   query,
   orderBy,
+  where,
   onSnapshot,
   Timestamp,
 } from 'firebase/firestore';
+import type { UserRole } from '../types';
 import { getAuth } from 'firebase/auth';
 import type { Orden, OrdenFormData, AuditInfo } from '../types';
 import { USE_MOCK_DATA, MOCK_ORDENES } from '../data/seed';
@@ -34,7 +36,7 @@ export const auth = getAuth(app);
 
 // Persistent cache: shows cached data instantly on app open,
 // then syncs with server in the background.
-const db = initializeFirestore(app, {
+export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager(),
   }),
@@ -42,12 +44,18 @@ const db = initializeFirestore(app, {
 
 // ── Audit helper ─────────────────────────────────────────────────────────────
 
+let currentAppUserNombre: string | null = null;
+
+export function setCurrentAppUserNombre(nombre: string | null): void {
+  currentAppUserNombre = nombre;
+}
+
 function currentAudit(): AuditInfo | null {
   const user = auth.currentUser;
   if (!user) return null;
   return {
     uid: user.uid,
-    nombre: user.displayName ?? user.email ?? 'Usuario',
+    nombre: currentAppUserNombre || user.displayName || user.email || 'Usuario',
     email: user.email ?? '',
     en: new Date().toISOString(),
   };
@@ -85,12 +93,30 @@ export async function getOrden(id: string): Promise<Orden | null> {
 export function subscribeToOrdenes(
   callback: (ordenes: Orden[]) => void,
   onError?: (e: Error) => void,
+  opts?: { role: UserRole; uid: string },
 ): () => void {
   if (USE_MOCK_DATA) {
     callback([...mockData].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()));
     return () => {};
   }
-  const q = query(collection(db, 'ordenes'), orderBy('fecha'));
+
+  let q;
+  if (!opts || opts.role === 'admin') {
+    q = query(collection(db, 'ordenes'), orderBy('fecha'));
+  } else if (opts.role === 'staff') {
+    q = query(
+      collection(db, 'ordenes'),
+      where('estado', 'in', ['confirmado', 'entregado', 'pagado', 'cancelado']),
+      orderBy('fecha'),
+    );
+  } else {
+    q = query(
+      collection(db, 'ordenes'),
+      where('asignados', 'array-contains', opts.uid),
+      orderBy('fecha'),
+    );
+  }
+
   return onSnapshot(
     q,
     (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Orden))),
@@ -165,7 +191,11 @@ export async function updateOrden(id: string, data: Partial<OrdenFormData>): Pro
   });
 }
 
-export async function avanzarEstadoOrden(id: string, nuevoEstado: string): Promise<void> {
+export async function avanzarEstadoOrden(
+  id: string,
+  nuevoEstado: string,
+  extra?: { asignados?: string[] },
+): Promise<void> {
   const audit = currentAudit();
   const auditKey: Record<string, string> = {
     confirmado: 'confirmadoPor',
@@ -178,6 +208,7 @@ export async function avanzarEstadoOrden(id: string, nuevoEstado: string): Promi
     if (orden) {
       (orden as unknown as Record<string, unknown>).estado = nuevoEstado;
       if (audit && auditKey[nuevoEstado]) (orden as unknown as Record<string, unknown>)[auditKey[nuevoEstado]] = audit;
+      if (extra?.asignados) (orden as unknown as Record<string, unknown>).asignados = extra.asignados;
     }
     return;
   }
@@ -185,6 +216,20 @@ export async function avanzarEstadoOrden(id: string, nuevoEstado: string): Promi
     estado: nuevoEstado,
     ...(audit ? { modificadoPor: audit } : {}),
     ...(audit && auditKey[nuevoEstado] ? { [auditKey[nuevoEstado]]: audit } : {}),
+    ...(extra?.asignados ? { asignados: extra.asignados } : {}),
+  });
+}
+
+export async function updateAsignados(id: string, asignados: string[]): Promise<void> {
+  const audit = currentAudit();
+  if (USE_MOCK_DATA) {
+    const orden = mockData.find((o) => o.id === id);
+    if (orden) (orden as unknown as Record<string, unknown>).asignados = asignados;
+    return;
+  }
+  await updateDoc(doc(db, 'ordenes', id), {
+    asignados,
+    ...(audit ? { modificadoPor: audit } : {}),
   });
 }
 

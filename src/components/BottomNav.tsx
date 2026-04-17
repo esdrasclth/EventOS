@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, ClipboardList, PlusCircle, Users, Activity } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import type { UserRole } from '../types';
 import styles from './BottomNav.module.css';
 
 interface NavItem {
@@ -8,23 +10,27 @@ interface NavItem {
   icon: React.ReactNode;
   label: string;
   isAction?: boolean;
+  roles: UserRole[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/', icon: <Home size={22} />, label: 'Inicio' },
-  { path: '/ordenes', icon: <ClipboardList size={22} />, label: 'Órdenes' },
-  { path: '/nueva', icon: <PlusCircle size={26} />, label: 'Nueva', isAction: true },
-  { path: '/clientes', icon: <Users size={22} />, label: 'Clientes' },
-  { path: '/actividad', icon: <Activity size={22} />, label: 'Actividad' },
+  { path: '/',          icon: <Home size={22} />,         label: 'Inicio',    roles: ['admin', 'staff', 'delivery'] },
+  { path: '/ordenes',   icon: <ClipboardList size={22} />,label: 'Órdenes',   roles: ['admin', 'staff', 'delivery'] },
+  { path: '/nueva',     icon: <PlusCircle size={26} />,   label: 'Nueva',     roles: ['admin'], isAction: true },
+  { path: '/clientes',  icon: <Users size={22} />,        label: 'Clientes',  roles: ['admin', 'staff'] },
+  { path: '/actividad', icon: <Activity size={22} />,     label: 'Actividad', roles: ['admin', 'staff'] },
 ];
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { role } = useAuth();
+
+  const items = NAV_ITEMS.filter((item) => role && item.roles.includes(role));
 
   return (
     <nav className={styles.nav}>
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const isActive =
           item.path === '/'
             ? location.pathname === '/'

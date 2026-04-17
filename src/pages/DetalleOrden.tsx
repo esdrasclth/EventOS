@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   User,
+  Users,
   Package,
   MessageSquare,
   Image,
@@ -19,11 +20,14 @@ import {
   Camera,
   Bell,
   BellRing,
+  UserPlus,
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen } from '../services/firebase';
+import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen, updateAsignados } from '../services/firebase';
+import { listUsers } from '../services/users';
+import type { AppUser } from '../types';
 import { exportToExcel } from '../services/exportExcel';
 // Lazy-load react-pdf only when user actually exports — it's 1.5MB
 const exportToPdf = async (orden: import('../types').Orden) => {
@@ -32,7 +36,9 @@ const exportToPdf = async (orden: import('../types').Orden) => {
 };
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
+import AsignarModal from '../components/AsignarModal';
 import { useOrderNotification } from '../hooks/useOrderNotification';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './DetalleOrden.module.css';
 
 const ESTADO_LABELS: Record<string, string> = {
@@ -122,6 +128,11 @@ function calcularDuracionDetalle(orden: { fecha: string; horaInicio?: string; fe
 const DetalleOrden: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
+  const isDelivery = role === 'delivery';
+  const puedeVerPrecios = isAdmin || isStaff;
   const { orden, loading, error } = useOrden(id ?? '');
   const { isOnline } = useNetworkStatus();
   const [marking, setMarking] = useState(false);
@@ -129,7 +140,18 @@ const DetalleOrden: React.FC = () => {
   const [deleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [asignarMode, setAsignarMode] = useState<'confirm' | 'edit' | null>(null);
+  const [usersCache, setUsersCache] = useState<AppUser[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!puedeVerPrecios) return;
+    if (!orden?.asignados?.length) return;
+    if (usersCache.length > 0) return;
+    listUsers()
+      .then(setUsersCache)
+      .catch((e) => console.error('[detalle] listUsers error:', e));
+  }, [puedeVerPrecios, orden?.asignados, usersCache.length]);
   const notifName = orden?.nombreEvento || orden?.nombre || '';
   const { enabled: notifEnabled, toggle: toggleNotif } = useOrderNotification(
     id ?? '',
@@ -180,11 +202,29 @@ const DetalleOrden: React.FC = () => {
     if (!orden) return;
     const siguiente = SIGUIENTE_ESTADO[orden.estado];
     if (!siguiente) return;
+    // Admin: al confirmar una orden pendiente, primero selecciona asignados.
+    if (orden.estado === 'pendiente' && isAdmin) {
+      setAsignarMode('confirm');
+      return;
+    }
     setMarking(true);
     try {
       await avanzarEstadoOrden(orden.id, siguiente.estado);
     } finally {
       setMarking(false);
+    }
+  }
+
+  async function handleConfirmAsignados(asignados: string[]) {
+    if (!orden) return;
+    try {
+      if (asignarMode === 'confirm') {
+        await avanzarEstadoOrden(orden.id, 'confirmado', { asignados });
+      } else {
+        await updateAsignados(orden.id, asignados);
+      }
+    } finally {
+      setAsignarMode(null);
     }
   }
 
@@ -246,7 +286,7 @@ const DetalleOrden: React.FC = () => {
           >
             {notifEnabled ? <BellRing size={18} /> : <Bell size={18} />}
           </button>
-          {puedeEditar(orden.estado) && (
+          {isAdmin && puedeEditar(orden.estado) && (
             <button
               className={styles.heroActionBtn}
               onClick={() => navigate(`/ordenes/${orden.id}/editar`)}
@@ -255,7 +295,7 @@ const DetalleOrden: React.FC = () => {
               <Edit3 size={18} />
             </button>
           )}
-          {puedeEliminar(orden.estado) && (
+          {isAdmin && puedeEliminar(orden.estado) && (
             <button
               className={`${styles.heroActionBtn} ${styles.heroActionDanger}`}
               onClick={handleDelete}
@@ -348,29 +388,35 @@ const DetalleOrden: React.FC = () => {
           defaultOpen
         >
           <div className={styles.productsTable}>
-            <div className={styles.tableHeader}>
+            <div className={`${styles.tableHeader} ${!puedeVerPrecios ? styles.tableHeaderNoPrices : ''}`}>
               <span className={styles.thProducto}>Producto</span>
               <span className={styles.thNum}>Cant.</span>
-              <span className={styles.thNum}>P.U.</span>
-              <span className={styles.thNum}>Sub.</span>
+              {puedeVerPrecios && <span className={styles.thNum}>P.U.</span>}
+              {puedeVerPrecios && <span className={styles.thNum}>Sub.</span>}
             </div>
             {orden.items.map((item, i) => (
               <div
                 key={i}
-                className={`${styles.tableRow} ${i % 2 === 1 ? styles.tableRowAlt : ''}`}
+                className={`${styles.tableRow} ${!puedeVerPrecios ? styles.tableRowNoPrices : ''} ${i % 2 === 1 ? styles.tableRowAlt : ''}`}
               >
                 <span className={styles.tdProducto}>{item.producto}</span>
                 <span className={styles.tdNum}>{item.cantidad}</span>
-                <span className={styles.tdNum}>{formatCurrency(item.precio)}</span>
-                <span className={`${styles.tdNum} ${styles.tdSubtotal}`}>
-                  {formatCurrency(item.cantidad * item.precio)}
-                </span>
+                {puedeVerPrecios && (
+                  <span className={styles.tdNum}>{formatCurrency(item.precio)}</span>
+                )}
+                {puedeVerPrecios && (
+                  <span className={`${styles.tdNum} ${styles.tdSubtotal}`}>
+                    {formatCurrency(item.cantidad * item.precio)}
+                  </span>
+                )}
               </div>
             ))}
-            <div className={styles.totalRow}>
-              <span className={styles.totalLabel}>TOTAL</span>
-              <span className={styles.totalValue}>{formatCurrency(orden.total)}</span>
-            </div>
+            {puedeVerPrecios && (
+              <div className={styles.totalRow}>
+                <span className={styles.totalLabel}>TOTAL</span>
+                <span className={styles.totalValue}>{formatCurrency(orden.total)}</span>
+              </div>
+            )}
           </div>
         </CollapseSection>
 
@@ -386,6 +432,46 @@ const DetalleOrden: React.FC = () => {
             <p className={styles.noComentarios}>Sin comentarios</p>
           )}
         </CollapseSection>
+
+        {/* Asignados (admin + staff) */}
+        {puedeVerPrecios && orden.estado !== 'pendiente' && (
+          <CollapseSection
+            title="Asignados"
+            icon={<Users size={16} />}
+            defaultOpen
+          >
+            <div className={styles.asignadosList}>
+              {orden.asignados && orden.asignados.length > 0 ? (
+                orden.asignados.map((uid) => {
+                  const u = usersCache.find((x) => x.uid === uid);
+                  return (
+                    <div key={uid} className={styles.asignadoRow}>
+                      <span className={styles.asignadoName}>
+                        {u ? (u.nombre || u.email) : 'Usuario...'}
+                      </span>
+                      {u?.role && (
+                        <span className={styles.asignadoRole}>{u.role}</span>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <p className={styles.noComentarios}>Sin usuarios asignados</p>
+              )}
+              {isAdmin && (
+                <button
+                  className={styles.asignarBtn}
+                  onClick={() => setAsignarMode('edit')}
+                >
+                  <UserPlus size={16} />
+                  {orden.asignados && orden.asignados.length > 0
+                    ? 'Editar asignados'
+                    : 'Asignar usuarios'}
+                </button>
+              )}
+            </div>
+          </CollapseSection>
+        )}
 
         {/* Image */}
         <CollapseSection
@@ -460,7 +546,7 @@ const DetalleOrden: React.FC = () => {
                 </span>
               </p>
             )}
-            {orden.pagadoPor && (
+            {orden.pagadoPor && puedeVerPrecios && (
               <p className={styles.auditLine}>
                 <span className={styles.auditVerb}>Pagado por</span>
                 <span className={styles.auditUser}>{orden.pagadoPor.nombre}</span>
@@ -484,25 +570,27 @@ const DetalleOrden: React.FC = () => {
 
       {/* Bottom actions */}
       <div className={styles.actions}>
-        <div className={styles.actionsSecondary}>
-          <button
-            className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={handleExportPdf}
-            disabled={pdfLoading}
-          >
-            <FileText size={16} />
-            {pdfLoading ? 'Generando...' : 'PDF'}
-          </button>
-          <button
-            className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={handleExportExcel}
-          >
-            <FileSpreadsheet size={16} />
-            Excel
-          </button>
-        </div>
+        {puedeVerPrecios && (
+          <div className={styles.actionsSecondary}>
+            <button
+              className={`${styles.btn} ${styles.btnSecondary}`}
+              onClick={handleExportPdf}
+              disabled={pdfLoading}
+            >
+              <FileText size={16} />
+              {pdfLoading ? 'Generando...' : 'PDF'}
+            </button>
+            <button
+              className={`${styles.btn} ${styles.btnSecondary}`}
+              onClick={handleExportExcel}
+            >
+              <FileSpreadsheet size={16} />
+              Excel
+            </button>
+          </div>
+        )}
 
-        {puedeCancelar(orden.estado) && (
+        {!isDelivery && puedeCancelar(orden.estado) && (
           <button
             className={`${styles.btn} ${styles.btnDanger}`}
             onClick={handleCancelar}
@@ -513,27 +601,52 @@ const DetalleOrden: React.FC = () => {
           </button>
         )}
 
-        {SIGUIENTE_ESTADO[orden.estado] ? (
-          <button
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={handleAvanzarEstado}
-            disabled={marking}
-          >
-            <CheckCircle2 size={18} />
-            {marking ? 'Guardando...' : SIGUIENTE_ESTADO[orden.estado]!.label}
-          </button>
-        ) : orden.estado === 'pagado' ? (
-          <button className={`${styles.btn} ${styles.btnDone}`} disabled>
-            <CheckCircle2 size={18} />
-            Orden pagada ✓
-          </button>
-        ) : (
-          <button className={`${styles.btn} ${styles.btnCancelled}`} disabled>
-            <XCircle size={18} />
-            Orden cancelada
-          </button>
-        )}
+        {(() => {
+          const next = SIGUIENTE_ESTADO[orden.estado];
+          if (!next) {
+            return orden.estado === 'pagado' ? (
+              <button className={`${styles.btn} ${styles.btnDone}`} disabled>
+                <CheckCircle2 size={18} />
+                Orden pagada ✓
+              </button>
+            ) : (
+              <button className={`${styles.btn} ${styles.btnCancelled}`} disabled>
+                <XCircle size={18} />
+                Orden cancelada
+              </button>
+            );
+          }
+          // Gating por rol en transiciones:
+          // pendiente → confirmado : admin
+          // confirmado → entregado : admin, staff, delivery
+          // entregado → pagado     : admin, staff
+          const canAdvance =
+            (orden.estado === 'pendiente'  && isAdmin) ||
+            (orden.estado === 'confirmado' && (isAdmin || isStaff || isDelivery)) ||
+            (orden.estado === 'entregado'  && (isAdmin || isStaff));
+          if (!canAdvance) return null;
+          return (
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={handleAvanzarEstado}
+              disabled={marking}
+            >
+              <CheckCircle2 size={18} />
+              {marking ? 'Guardando...' : next.label}
+            </button>
+          );
+        })()}
       </div>
+
+      {asignarMode && (
+        <AsignarModal
+          title={asignarMode === 'confirm' ? 'Confirmar y asignar' : 'Editar asignados'}
+          confirmLabel={asignarMode === 'confirm' ? 'Confirmar orden' : 'Guardar'}
+          initialAsignados={orden.asignados ?? []}
+          onCancel={() => setAsignarMode(null)}
+          onConfirm={handleConfirmAsignados}
+        />
+      )}
     </div>
   );
 };

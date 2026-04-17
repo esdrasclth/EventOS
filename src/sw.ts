@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { NetworkFirst, CacheFirst } from 'workbox-strategies';
+import { NetworkFirst, CacheFirst, NetworkOnly } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -24,6 +24,15 @@ registerRoute(
     cacheName: 'firestore-cache',
     plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 86400 })],
   })
+);
+
+// Firestore real-time streaming (Listen/channel, Write/channel) — POST long-polling.
+// Workbox por defecto solo matchea GET, así que estas peticiones se loggean como
+// "No route found". Las dejamos pasar sin interceptar.
+registerRoute(
+  ({ url }) => url.hostname === 'firestore.googleapis.com',
+  new NetworkOnly(),
+  'POST'
 );
 
 // Firebase Storage — CacheFirst

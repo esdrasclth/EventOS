@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut } from 'lucide-react';
+import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut, UserCog } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useAuth } from '../contexts/AuthContext';
 import OrdenCard from '../components/OrdenCard';
@@ -21,9 +21,10 @@ function formatCurrency(amount: number): string {
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, appUser, role, logout } = useAuth();
   const { ordenes, loading } = useOrdenes();
-  const userName = user?.displayName ?? 'equipo';
+  const userName = appUser?.nombre || user?.displayName || 'equipo';
+  const puedeVerPrecios = role === 'admin' || role === 'staff';
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -73,9 +74,20 @@ const Home: React.FC = () => {
             <p className={styles.greeting}>Hola, {userName} 👋</p>
             <p className={styles.date}>{formatDate()}</p>
           </div>
-          <button className={styles.logoutBtn} onClick={logout} aria-label="Cerrar sesión">
-            <LogOut size={18} />
-          </button>
+          <div className={styles.headerActions}>
+            {role === 'admin' && (
+              <button
+                className={styles.headerIconBtn}
+                onClick={() => navigate('/usuarios')}
+                aria-label="Gestionar usuarios"
+              >
+                <UserCog size={18} />
+              </button>
+            )}
+            <button className={styles.logoutBtn} onClick={logout} aria-label="Cerrar sesión">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Stats row */}
@@ -90,17 +102,20 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          <div className={styles.statDivider} />
-
-          <div className={styles.statCard}>
-            <div className={styles.statIcon} style={{ background: 'rgba(255,255,255,0.2)' }}>
-              <DollarSign size={18} color="white" />
-            </div>
-            <div className={styles.statInfo}>
-              <span className={styles.statValue}>{formatCurrency(stats.ingresosMes)}</span>
-              <span className={styles.statLabel}>Ingresos del mes</span>
-            </div>
-          </div>
+          {puedeVerPrecios && (
+            <>
+              <div className={styles.statDivider} />
+              <div className={styles.statCard}>
+                <div className={styles.statIcon} style={{ background: 'rgba(255,255,255,0.2)' }}>
+                  <DollarSign size={18} color="white" />
+                </div>
+                <div className={styles.statInfo}>
+                  <span className={styles.statValue}>{formatCurrency(stats.ingresosMes)}</span>
+                  <span className={styles.statLabel}>Ingresos del mes</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

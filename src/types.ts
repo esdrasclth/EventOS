@@ -37,6 +37,18 @@ export interface Orden {
   pagadoPor?: AuditInfo;
   canceladoPor?: AuditInfo;
   modificadoPor?: AuditInfo;
+  asignados?: string[];
 }
 
 export type OrdenFormData = Omit<Orden, 'id' | 'creadoEn' | 'total' | 'creadoPor' | 'modificadoPor'>;
+
+export type UserRole = 'admin' | 'staff' | 'delivery';
+
+export interface AppUser {
+  uid: string;
+  email: string;
+  nombre: string;
+  role: UserRole;
+  activo: boolean;
+  creadoEn: string;
+}

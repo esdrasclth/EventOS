@@ -57,6 +57,14 @@
   text-transform: capitalize;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.headerIconBtn,
 .logoutBtn {
   width: 42px;
   height: 42px;
@@ -71,6 +79,7 @@
   backdrop-filter: blur(10px);
 }
 
+.headerIconBtn:active,
 .logoutBtn:active {
   background: rgba(255,255,255,0.3);
 }

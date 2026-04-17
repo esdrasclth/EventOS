@@ -191,6 +191,10 @@
   gap: var(--space-sm);
 }
 
+.tableHeaderNoPrices {
+  grid-template-columns: 3fr 1fr;
+}
+
 .thProducto, .thNum {
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -209,6 +213,10 @@
   padding: var(--space-sm) var(--space-md);
   gap: var(--space-sm);
   align-items: center;
+}
+
+.tableRowNoPrices {
+  grid-template-columns: 3fr 1fr;
 }
 
 .tableRowAlt {
@@ -267,6 +275,65 @@
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   font-style: italic;
+}
+
+/* Asignados */
+.asignadosList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.asignadoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.asignadoName {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  font-weight: 500;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asignadoRole {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.asignarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-white);
+  color: var(--color-primary);
+  border: 1.5px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background var(--transition-fast);
+}
+
+.asignarBtn:active {
+  background: var(--color-primary-bg);
 }
 
 /* Image */

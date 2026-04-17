@@ -5,24 +5,44 @@ import {
   signOut,
   type User,
 } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { auth, setCurrentAppUserNombre } from '../services/firebase';
+import { getAppUser } from '../services/users';
+import type { AppUser, UserRole } from '../types';
 
 interface AuthContextValue {
   user: User | null;
+  appUser: AppUser | null;
+  role: UserRole | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshAppUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      if (u) {
+        try {
+          const profile = await getAppUser(u.uid);
+          setAppUser(profile);
+          setCurrentAppUserNombre(profile?.nombre ?? null);
+        } catch (e) {
+          console.error('[auth] failed to load user profile', e);
+          setAppUser(null);
+          setCurrentAppUserNombre(null);
+        }
+      } else {
+        setAppUser(null);
+        setCurrentAppUserNombre(null);
+      }
       setLoading(false);
     });
     return unsub;
@@ -36,9 +56,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   }, []);
 
+  const refreshAppUser = useCallback(async () => {
+    const current = auth.currentUser;
+    if (!current) return;
+    try {
+      const profile = await getAppUser(current.uid);
+      setAppUser(profile);
+      setCurrentAppUserNombre(profile?.nombre ?? null);
+    } catch (e) {
+      console.error('[auth] refreshAppUser failed', e);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, loading, login, logout }),
-    [user, loading, login, logout],
+    () => ({
+      user,
+      appUser,
+      role: appUser?.role ?? null,
+      loading,
+      login,
+      logout,
+      refreshAppUser,
+    }),
+    [user, appUser, loading, login, logout, refreshAppUser],
   );
 
   return (

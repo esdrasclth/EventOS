@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 import { UserCircle } from 'lucide-react';
-import { auth } from '../services/firebase';
+import { auth, db } from '../services/firebase';
 import styles from './NombreModal.module.css';
 
 interface Props {
@@ -17,12 +18,18 @@ const NombreModal: React.FC<Props> = ({ onDone }) => {
     e.preventDefault();
     const trimmed = nombre.trim();
     if (!trimmed) return;
+    const user = auth.currentUser;
+    if (!user) return;
     setSaving(true);
     setError('');
     try {
-      await updateProfile(auth.currentUser!, { displayName: trimmed });
+      await Promise.all([
+        updateProfile(user, { displayName: trimmed }),
+        updateDoc(doc(db, 'users', user.uid), { nombre: trimmed }),
+      ]);
       onDone(trimmed);
-    } catch {
+    } catch (e) {
+      console.error('[NombreModal] error al guardar:', e);
       setError('No se pudo guardar el nombre. Intenta de nuevo.');
       setSaving(false);
     }

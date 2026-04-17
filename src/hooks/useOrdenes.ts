@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Orden } from '../types';
 import { subscribeToOrdenes } from '../services/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UseOrdenesResult {
   ordenes: Orden[];
@@ -9,11 +10,18 @@ interface UseOrdenesResult {
 }
 
 export function useOrdenes(): UseOrdenesResult {
+  const { user, role, loading: authLoading } = useAuth();
   const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user || !role) {
+      setLoading(false);
+      return;
+    }
+
     const unsub = subscribeToOrdenes(
       (data) => {
         setOrdenes(data);
@@ -24,9 +32,10 @@ export function useOrdenes(): UseOrdenesResult {
         setLoading(false);
         console.error(e);
       },
+      { role, uid: user.uid },
     );
     return unsub;
-  }, []);
+  }, [authLoading, user, role]);
 
   return { ordenes, loading, error };
 }

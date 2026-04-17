@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,6 +15,7 @@ const DetalleOrden = lazy(() => import('./pages/DetalleOrden'));
 const NuevaOrden = lazy(() => import('./pages/NuevaOrden'));
 const Clientes   = lazy(() => import('./pages/Clientes'));
 const Actividad  = lazy(() => import('./pages/Actividad'));
+const Usuarios   = lazy(() => import('./pages/Usuarios'));
 
 function shouldHideNav(pathname: string): boolean {
   const detailPattern = /^\/ordenes\/[^/]+(\/editar)?$/;
@@ -23,21 +24,22 @@ function shouldHideNav(pathname: string): boolean {
 
 function AppRoutes() {
   const location = useLocation();
-  const { user, loading } = useAuth();
+  const { user, appUser, loading, refreshAppUser } = useAuth();
   const hideNav = shouldHideNav(location.pathname);
-  const [displayName, setDisplayName] = useState(user?.displayName ?? '');
 
-  useEffect(() => {
-    if (user?.displayName) setDisplayName(user.displayName);
-  }, [user]);
-
-  const needsName = !loading && !!user && !displayName && location.pathname !== '/login';
+  const needsName =
+    !loading &&
+    !!user &&
+    !!appUser &&
+    appUser.activo &&
+    !appUser.nombre?.trim() &&
+    location.pathname !== '/login';
 
   return (
     <>
       <UpdateBanner />
       <OfflineBanner />
-      {needsName && <NombreModal onDone={(n) => setDisplayName(n)} />}
+      {needsName && <NombreModal onDone={() => refreshAppUser()} />}
       <Suspense fallback={null}>
       <div key={location.pathname} className="page-transition">
       <Routes>
@@ -50,10 +52,46 @@ function AppRoutes() {
                 <Route path="/" element={<Home />} />
                 <Route path="/ordenes" element={<Ordenes />} />
                 <Route path="/ordenes/:id" element={<DetalleOrden />} />
-                <Route path="/ordenes/:id/editar" element={<NuevaOrden />} />
-                <Route path="/nueva" element={<NuevaOrden />} />
-                <Route path="/clientes" element={<Clientes />} />
-                <Route path="/actividad" element={<Actividad />} />
+                <Route
+                  path="/ordenes/:id/editar"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <NuevaOrden />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/nueva"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <NuevaOrden />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/clientes"
+                  element={
+                    <ProtectedRoute roles={['admin', 'staff']}>
+                      <Clientes />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/actividad"
+                  element={
+                    <ProtectedRoute roles={['admin', 'staff']}>
+                      <Actividad />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/usuarios"
+                  element={
+                    <ProtectedRoute roles={['admin']}>
+                      <Usuarios />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ProtectedRoute>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Package } from 'lucide-react';
 import type { Orden } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './OrdenCard.module.css';
 
 interface Props {
@@ -29,6 +30,8 @@ function formatCurrency(amount: number): string {
 
 const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const showTotal = role === 'admin' || role === 'staff';
   const estado = ESTADO_MAP[orden.estado] ?? ESTADO_MAP.pendiente;
   const totalProductos = orden.items.length;
   const totalUnidades = orden.items.reduce((sum, i) => sum + i.cantidad, 0);
@@ -68,7 +71,9 @@ const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
             <Package size={12} />
             {totalProductos} producto{totalProductos !== 1 ? 's' : ''} · {totalUnidades} uds.
           </span>
-          <span className={styles.total}>{formatCurrency(orden.total)}</span>
+          {showTotal && (
+            <span className={styles.total}>{formatCurrency(orden.total)}</span>
+          )}
         </div>
       </div>
     </article>
