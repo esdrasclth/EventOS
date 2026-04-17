@@ -2,11 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   setOrderNotification,
   getOrderNotification,
-  savePushSubscription,
-  auth,
 } from '../services/firebase';
 import {
-  isPushSupported,
   requestAndSubscribe,
   getSubscriptionState,
 } from '../services/notifications';

@@ -99,8 +99,7 @@ async function showLocalNotification(
       badge: '/icons/icon-192.png',
       tag: `order-${ordenId}`,
       data: { ordenId },
-      vibrate: [200, 100, 200],
-    });
+    } as NotificationOptions);
   } catch {
     new Notification(title, { body, icon: '/icons/icon-192.png' });
   }
