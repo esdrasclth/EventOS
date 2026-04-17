@@ -57,8 +57,8 @@ export function useOrderNotification(
     try {
       if (enabled) {
         disableOrderNotif(ordenId);
-        await setOrderNotification(ordenId, false);
         setEnabled(false);
+        await setOrderNotification(ordenId, false);
         return;
       }
 
@@ -66,8 +66,10 @@ export function useOrderNotification(
       if (!subscribed) return;
 
       enableOrderNotif(ordenId, nombreEvento, fecha, horaInicio);
-      await setOrderNotification(ordenId, true);
       setEnabled(true);
+      await setOrderNotification(ordenId, true);
+    } catch {
+      setEnabled(isOrderNotifEnabled(ordenId));
     } finally {
       setLoading(false);
     }

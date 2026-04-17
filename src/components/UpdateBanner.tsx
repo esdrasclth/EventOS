@@ -43,6 +43,9 @@ const UpdateBanner: React.FC = () => {
     setUpdating(true);
     setProgress(10);
     updateServiceWorker(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 6000);
   };
 
   return (

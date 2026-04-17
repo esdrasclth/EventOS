@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Plus,
@@ -63,6 +63,7 @@ const EMPTY_ITEM: ItemOrden = { producto: '', cantidad: 0, precio: 0 };
 const NuevaOrden: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
+  const [searchParams] = useSearchParams();
   const isEdit = !!id;
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -79,9 +80,9 @@ const NuevaOrden: React.FC = () => {
     horaInicio: '09:00',
     fechaFin: today,
     horaFin: '18:00',
-    nombre: '',
-    telefono: '',
-    direccion: '',
+    nombre: searchParams.get('nombre') ?? '',
+    telefono: searchParams.get('telefono') ?? '',
+    direccion: searchParams.get('direccion') ?? '',
     estado: 'pendiente',
     comentarios: '',
     items: [{ ...EMPTY_ITEM }],
