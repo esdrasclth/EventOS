@@ -31,7 +31,7 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 function formatCurrency(amount: number): string {
-  return `L. ${amount.toLocaleString('es-HN')}`;
+  return `$ ${amount.toLocaleString('es-HN')}`;
 }
 
 function formatDate(dateStr: string): string {

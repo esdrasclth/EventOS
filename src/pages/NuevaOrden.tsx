@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { ItemOrden, EstadoOrden, OrdenFormData } from '../types';
 import { createOrden, updateOrden, getOrden, uploadImagen } from '../services/firebase';
+import { useOrdenes } from '../hooks/useOrdenes';
 import ItemRow from '../components/ItemRow';
 import styles from './NuevaOrden.module.css';
 
@@ -71,6 +72,20 @@ const NuevaOrden: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loadingOrden, setLoadingOrden] = useState(isEdit);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const { ordenes } = useOrdenes();
+  const clientesMap = useMemo(() => {
+    const map = new Map<string, { nombre: string; telefono: string; direccion: string }>();
+    ordenes.forEach((o) => {
+      const key = o.nombre.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, { nombre: o.nombre, telefono: o.telefono, direccion: o.direccion });
+      }
+    });
+    return Array.from(map.values());
+  }, [ordenes]);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -183,6 +198,32 @@ const NuevaOrden: React.FC = () => {
       setSaving(false);
     }
   }
+
+  const suggestions = useMemo(() => {
+    const q = form.nombre.trim().toLowerCase();
+    if (!q || q.length < 2 || isEdit) return [];
+    return clientesMap.filter((c) => c.nombre.toLowerCase().includes(q));
+  }, [form.nombre, clientesMap, isEdit]);
+
+  function selectCliente(c: { nombre: string; telefono: string; direccion: string }) {
+    setForm((prev) => ({
+      ...prev,
+      nombre: c.nombre,
+      telefono: prev.telefono || c.telefono,
+      direccion: prev.direccion || c.direccion,
+    }));
+    setShowSuggestions(false);
+  }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   function handleTelefonoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -334,13 +375,37 @@ const NuevaOrden: React.FC = () => {
 
           <div className={styles.field}>
             <label className={styles.label}>Nombre completo *</label>
-            <input
-              className={styles.input}
-              placeholder="Ej: María López"
-              value={form.nombre}
-              onChange={(e) => setField('nombre', e.target.value)}
-              required
-            />
+            <div className={styles.autocompleteWrapper} ref={suggestionsRef}>
+              <input
+                className={styles.input}
+                placeholder="Ej: María López"
+                value={form.nombre}
+                onChange={(e) => {
+                  setField('nombre', e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                autoComplete="off"
+                required
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className={styles.suggestions}>
+                  {suggestions.map((c) => (
+                    <button
+                      key={c.nombre}
+                      type="button"
+                      className={styles.suggestionItem}
+                      onClick={() => selectCliente(c)}
+                    >
+                      <span className={styles.suggestionName}>{c.nombre}</span>
+                      {c.telefono && (
+                        <span className={styles.suggestionMeta}>{c.telefono}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Teléfono</label>

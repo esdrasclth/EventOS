@@ -167,6 +167,60 @@
   color: #ACACAC;
 }
 
+/* Client autocomplete */
+.autocompleteWrapper {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px var(--space-md);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:active {
+  background: var(--color-primary-bg);
+}
+
+.suggestionName {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.suggestionMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
 /* Estado pills */
 .estadoPills {
   display: flex;
