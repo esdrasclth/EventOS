@@ -51,6 +51,7 @@ export function useOrderNotification(
   }, []);
 
   const toggle = useCallback(async () => {
+    console.log('[notif] toggle clicked. enabled:', enabled, 'ordenId:', ordenId);
     if (loading) return;
     setLoading(true);
 
@@ -59,16 +60,20 @@ export function useOrderNotification(
         disableOrderNotif(ordenId);
         setEnabled(false);
         await setOrderNotification(ordenId, false);
+        console.log('[notif] disabled successfully');
         return;
       }
 
       const subscribed = await ensurePushSubscription();
+      console.log('[notif] ensurePushSubscription returned:', subscribed);
       if (!subscribed) return;
 
       enableOrderNotif(ordenId, nombreEvento, fecha, horaInicio);
       setEnabled(true);
       await setOrderNotification(ordenId, true);
-    } catch {
+      console.log('[notif] enabled successfully');
+    } catch (err) {
+      console.error('[notif] toggle error:', err);
       setEnabled(isOrderNotifEnabled(ordenId));
     } finally {
       setLoading(false);

@@ -10,23 +10,42 @@ export function isPushSupported(): boolean {
 }
 
 export async function requestAndSubscribe(): Promise<'granted' | 'denied' | 'unsupported'> {
-  if (!isPushSupported()) return 'unsupported';
+  console.log('[push] requestAndSubscribe: start');
+  if (!isPushSupported()) {
+    console.warn('[push] not supported');
+    return 'unsupported';
+  }
 
   const permission = await Notification.requestPermission();
+  console.log('[push] permission:', permission);
   if (permission !== 'granted') return 'denied';
 
   const reg = await navigator.serviceWorker.ready;
+  console.log('[push] SW ready, scope:', reg.scope);
   const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
+  console.log('[push] VAPID key present:', !!vapidKey, 'length:', vapidKey?.length);
+
+  const keyBytes = urlBase64ToUint8Array(vapidKey);
+  console.log('[push] decoded key bytes:', keyBytes.length, 'first byte:', '0x' + keyBytes[0].toString(16));
+
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) {
+    console.log('[push] unsubscribing existing subscription first');
+    await existing.unsubscribe();
+  }
 
   const subscription = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as BufferSource,
+    applicationServerKey: keyBytes as unknown as BufferSource,
   });
+  console.log('[push] pushManager subscription created:', subscription.endpoint);
 
   const userId = auth.currentUser?.uid;
+  console.log('[push] auth uid:', userId);
   if (!userId) return 'denied';
 
   await savePushSubscription(userId, subscription.toJSON());
+  console.log('[push] subscription saved to Firestore');
   return 'granted';
 }
 

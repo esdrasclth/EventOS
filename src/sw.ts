@@ -8,7 +8,8 @@ declare const self: ServiceWorkerGlobalScope;
 
 // Precache all build assets (manifest injected by vite-plugin-pwa)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-precacheAndRoute((self as any).__WB_MANIFEST);
+const manifest = (self as any).__WB_MANIFEST;
+precacheAndRoute(Array.isArray(manifest) ? manifest : []);
 cleanupOutdatedCaches();
 
 // Skip waiting when UpdateBanner calls updateServiceWorker(true)
@@ -38,12 +39,27 @@ registerRoute(
 
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  const { title, body, tag, data } = event.data.json() as {
-    title: string;
-    body: string;
-    tag: string;
-    data?: Record<string, unknown>;
-  };
+
+  let title = 'Panchos Rentals';
+  let body = '';
+  let tag: string | undefined;
+  let data: Record<string, unknown> | undefined;
+
+  try {
+    const payload = event.data.json() as {
+      title?: string;
+      body?: string;
+      tag?: string;
+      data?: Record<string, unknown>;
+    };
+    title = payload.title ?? title;
+    body = payload.body ?? '';
+    tag = payload.tag;
+    data = payload.data;
+  } catch {
+    body = event.data.text();
+  }
+
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
