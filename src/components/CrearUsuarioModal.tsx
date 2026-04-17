@@ -80,6 +80,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onCancel, onCreated }) => {
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.scrollArea}>
           <label className={styles.field}>
             <span className={styles.label}>Nombre</span>
             <input
@@ -145,6 +146,7 @@ const CrearUsuarioModal: React.FC<Props> = ({ onCancel, onCreated }) => {
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
+          </div>
 
           <div className={styles.actions}>
             <button
