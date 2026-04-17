@@ -7,7 +7,7 @@
 import type { Config } from '@netlify/functions';
 import webpush from 'web-push';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldPath } from 'firebase-admin/firestore';
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
@@ -75,7 +75,7 @@ export default async function handler() {
     const batch = orderIds.slice(i, i + 30);
     const ordersSnap = await db
       .collection('ordenes')
-      .where('__name__', 'in', batch)
+      .where(FieldPath.documentId(), 'in', batch)
       .get();
 
     for (const orderDoc of ordersSnap.docs) {

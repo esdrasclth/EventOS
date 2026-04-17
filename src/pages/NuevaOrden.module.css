@@ -170,6 +170,11 @@
 /* Client autocomplete */
 .autocompleteWrapper {
   position: relative;
+  width: 100%;
+}
+
+.autocompleteWrapper .input {
+  width: 100%;
 }
 
 .suggestions {

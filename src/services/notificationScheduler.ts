@@ -89,7 +89,7 @@ async function showLocalNotification(
   body: string,
   ordenId: string,
 ) {
-  if (Notification.permission !== 'granted') return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
 
   try {
     const reg = await navigator.serviceWorker.ready;
@@ -119,7 +119,7 @@ export function scheduleAll() {
   for (const t of activeTimers) clearTimeout(t);
   activeTimers.length = 0;
 
-  if (Notification.permission !== 'granted') return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
 
   cleanupPastOrders();
   const store = getStore();
