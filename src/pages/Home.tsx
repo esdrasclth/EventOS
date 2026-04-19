@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut, UserCog, Package } from 'lucide-react';
+import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut, UserCog, Package, Truck } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useAuth } from '../contexts/AuthContext';
 import OrdenCard from '../components/OrdenCard';
@@ -127,6 +127,23 @@ const Home: React.FC = () => {
           )}
         </div>
       </header>
+
+      {/* Carga del día shortcut */}
+      <section className={styles.section}>
+        <button
+          className={styles.cargaBtn}
+          onClick={() => navigate('/carga')}
+        >
+          <div className={styles.cargaIcon}>
+            <Truck size={20} color="var(--color-primary)" />
+          </div>
+          <div className={styles.cargaInfo}>
+            <span className={styles.cargaTitle}>Carga del día</span>
+            <span className={styles.cargaSubtitle}>Productos a cargar al camión</span>
+          </div>
+          <ChevronRight size={20} color="var(--color-text-secondary)" />
+        </button>
+      </section>
 
       {/* Próximo evento card */}
       {stats.proximoEvento && (

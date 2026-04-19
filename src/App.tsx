@@ -17,6 +17,7 @@ const Clientes   = lazy(() => import('./pages/Clientes'));
 const Actividad  = lazy(() => import('./pages/Actividad'));
 const Usuarios   = lazy(() => import('./pages/Usuarios'));
 const Productos  = lazy(() => import('./pages/Productos'));
+const CargaDelDia = lazy(() => import('./pages/CargaDelDia'));
 
 function shouldHideNav(pathname: string): boolean {
   const detailPattern = /^\/ordenes\/[^/]+(\/editar)?$/;
@@ -101,6 +102,7 @@ function AppRoutes() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/carga" element={<CargaDelDia />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ProtectedRoute>
