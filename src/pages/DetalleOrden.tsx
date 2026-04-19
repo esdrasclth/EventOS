@@ -9,6 +9,7 @@ import {
   Image,
   Phone,
   MapPin,
+  Navigation,
   Calendar,
   FileSpreadsheet,
   FileText,
@@ -345,9 +346,22 @@ const DetalleOrden: React.FC = () => {
             </div>
             <div className={styles.infoRow}>
               <span className={styles.infoIcon}><MapPin size={14} /></span>
-              <div>
+              <div className={styles.infoRowContent}>
                 <p className={styles.infoLabel}>Dirección</p>
-                <p className={styles.infoValue}>{orden.direccion}</p>
+                <div className={styles.telefonoRow}>
+                  <p className={styles.infoValue}>{orden.direccion}</p>
+                  {orden.direccion && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orden.direccion)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mapsBtn}
+                      aria-label="Abrir en Google Maps"
+                    >
+                      <Navigation size={15} />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
             <div className={styles.infoRow}>

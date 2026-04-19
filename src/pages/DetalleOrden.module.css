@@ -176,6 +176,24 @@
   background: #16a34a;
 }
 
+.mapsBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: #4285F4;
+  color: #fff;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.mapsBtn:active {
+  background: #1a73e8;
+}
+
 /* Products table */
 .productsTable {
   border-radius: var(--radius-md);
