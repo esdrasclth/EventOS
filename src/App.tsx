@@ -55,7 +55,7 @@ function AppRoutes() {
                 <Route
                   path="/ordenes/:id/editar"
                   element={
-                    <ProtectedRoute roles={['admin']}>
+                    <ProtectedRoute roles={['admin', 'staff']}>
                       <NuevaOrden />
                     </ProtectedRoute>
                   }
@@ -63,7 +63,7 @@ function AppRoutes() {
                 <Route
                   path="/nueva"
                   element={
-                    <ProtectedRoute roles={['admin']}>
+                    <ProtectedRoute roles={['admin', 'staff']}>
                       <NuevaOrden />
                     </ProtectedRoute>
                   }

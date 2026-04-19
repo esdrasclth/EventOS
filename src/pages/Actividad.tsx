@@ -5,10 +5,13 @@ import {
   DollarSign,
   FileSpreadsheet,
   Clock,
+  ShieldAlert,
 } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
+import { useAuth } from '../contexts/AuthContext';
 import { exportToExcel } from '../services/exportExcel';
 import styles from './Actividad.module.css';
+import noAccessStyles from '../components/NoAccess.module.css';
 
 const ESTADO_MAP = {
   pendiente:  { label: 'Pendiente',  color: '#F59E0B', bg: '#FEF3C7' },
@@ -29,6 +32,25 @@ function formatDate(dateStr: string): string {
 }
 
 const Actividad: React.FC = () => {
+  const { role } = useAuth();
+
+  if (role !== 'admin') {
+    return (
+      <div className={noAccessStyles.wrapper}>
+        <ShieldAlert size={56} className={noAccessStyles.icon} />
+        <h2 className={noAccessStyles.title}>Sin acceso</h2>
+        <p className={noAccessStyles.text}>
+          No tienes permiso para ver esta sección. Contacta al administrador si
+          necesitas acceso.
+        </p>
+      </div>
+    );
+  }
+
+  return <ActividadContent />;
+};
+
+const ActividadContent: React.FC = () => {
   const { ordenes, loading } = useOrdenes();
 
   const currentMonth = new Date().getMonth();

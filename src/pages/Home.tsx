@@ -24,7 +24,7 @@ const Home: React.FC = () => {
   const { user, appUser, role, logout } = useAuth();
   const { ordenes, loading } = useOrdenes();
   const userName = appUser?.nombre || user?.displayName || 'equipo';
-  const puedeVerPrecios = role === 'admin' || role === 'staff';
+  const puedeVerPrecios = role === 'admin';
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();

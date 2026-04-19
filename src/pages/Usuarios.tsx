@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, UserPlus, CheckCircle2, XCircle, Shield, UserCog, Truck } from 'lucide-react';
-import { subscribeToUsers, updateUserRole, setUserActive } from '../services/users';
+import { listUsers, updateUserRole, setUserActive } from '../services/users';
 import { useAuth } from '../contexts/AuthContext';
 import type { AppUser, UserRole } from '../types';
 import CrearUsuarioModal from '../components/CrearUsuarioModal';
@@ -28,19 +28,20 @@ const Usuarios: React.FC = () => {
   const [showCrear, setShowCrear] = useState(false);
   const [busyUid, setBusyUid] = useState<string | null>(null);
 
-  useEffect(() => {
-    const unsub = subscribeToUsers(
-      (data) => {
-        setUsers(data);
-        setLoading(false);
-      },
-      (e) => {
-        console.error('[usuarios] subscribe error:', e);
-        setLoading(false);
-      },
-    );
-    return unsub;
+  const fetchUsers = useCallback(async () => {
+    try {
+      const data = await listUsers();
+      setUsers(data);
+    } catch (e) {
+      console.error('[usuarios] listUsers error:', e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -63,6 +64,7 @@ const Usuarios: React.FC = () => {
     setBusyUid(uid);
     try {
       await updateUserRole(uid, role);
+      setUsers((prev) => prev.map((u) => (u.uid === uid ? { ...u, role } : u)));
     } catch (e) {
       console.error('[usuarios] updateUserRole error:', e);
       alert('No se pudo actualizar el rol.');
@@ -75,6 +77,9 @@ const Usuarios: React.FC = () => {
     setBusyUid(u.uid);
     try {
       await setUserActive(u.uid, !u.activo);
+      setUsers((prev) =>
+        prev.map((x) => (x.uid === u.uid ? { ...x, activo: !u.activo } : x)),
+      );
     } catch (e) {
       console.error('[usuarios] setUserActive error:', e);
       alert('No se pudo cambiar el estado.');
@@ -207,7 +212,10 @@ const Usuarios: React.FC = () => {
       {showCrear && (
         <CrearUsuarioModal
           onCancel={() => setShowCrear(false)}
-          onCreated={() => setShowCrear(false)}
+          onCreated={() => {
+            setShowCrear(false);
+            fetchUsers();
+          }}
         />
       )}
     </div>

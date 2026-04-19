@@ -16,7 +16,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { path: '/',          icon: <Home size={22} />,         label: 'Inicio',    roles: ['admin', 'staff', 'delivery'] },
   { path: '/ordenes',   icon: <ClipboardList size={22} />,label: 'Órdenes',   roles: ['admin', 'staff', 'delivery'] },
-  { path: '/nueva',     icon: <PlusCircle size={26} />,   label: 'Nueva',     roles: ['admin'], isAction: true },
+  { path: '/nueva',     icon: <PlusCircle size={26} />,   label: 'Nueva',     roles: ['admin', 'staff'], isAction: true },
   { path: '/clientes',  icon: <Users size={22} />,        label: 'Clientes',  roles: ['admin', 'staff'] },
   { path: '/actividad', icon: <Activity size={22} />,     label: 'Actividad', roles: ['admin', 'staff'] },
 ];

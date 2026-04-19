@@ -204,7 +204,7 @@ const DetalleOrden: React.FC = () => {
     const siguiente = SIGUIENTE_ESTADO[orden.estado];
     if (!siguiente) return;
     // Admin: al confirmar una orden pendiente, primero selecciona asignados.
-    if (orden.estado === 'pendiente' && isAdmin) {
+    if (orden.estado === 'pendiente' && (isAdmin || isStaff)) {
       setAsignarMode('confirm');
       return;
     }
@@ -287,7 +287,7 @@ const DetalleOrden: React.FC = () => {
           >
             {notifEnabled ? <BellRing size={18} /> : <Bell size={18} />}
           </button>
-          {isAdmin && puedeEditar(orden.estado) && (
+          {(isAdmin || isStaff) && puedeEditar(orden.estado) && (
             <button
               className={styles.heroActionBtn}
               onClick={() => navigate(`/ordenes/${orden.id}/editar`)}
@@ -296,7 +296,7 @@ const DetalleOrden: React.FC = () => {
               <Edit3 size={18} />
             </button>
           )}
-          {isAdmin && puedeEliminar(orden.estado) && (
+          {(isAdmin || isStaff) && puedeEliminar(orden.estado) && (
             <button
               className={`${styles.heroActionBtn} ${styles.heroActionDanger}`}
               onClick={handleDelete}
@@ -472,7 +472,7 @@ const DetalleOrden: React.FC = () => {
               ) : (
                 <p className={styles.noComentarios}>Sin usuarios asignados</p>
               )}
-              {isAdmin && (
+              {(isAdmin || isStaff) && (
                 <button
                   className={styles.asignarBtn}
                   onClick={() => setAsignarMode('edit')}
