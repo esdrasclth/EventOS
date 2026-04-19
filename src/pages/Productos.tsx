@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Plus, Check, X, Pencil, CheckCircle2, XCircle, Package } from 'lucide-react';
 import { createProducto, renameProducto, setProductoActivo } from '../services/productos';
@@ -15,6 +15,7 @@ const Productos: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const createInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -29,7 +30,10 @@ const Productos: React.FC = () => {
 
   async function handleCrear() {
     const nombre = nuevoNombre.trim();
-    if (!nombre) return;
+    if (!nombre) {
+      createInputRef.current?.focus();
+      return;
+    }
     const existe = productos.some((p) => p.nombre.toLowerCase() === nombre.toLowerCase());
     if (existe) {
       alert('Ya existe un producto con ese nombre.');
@@ -110,16 +114,18 @@ const Productos: React.FC = () => {
 
       <div className={styles.createWrap}>
         <input
+          ref={createInputRef}
           className={styles.createInput}
           placeholder="Nombre del producto nuevo..."
           value={nuevoNombre}
           onChange={(e) => setNuevoNombre(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleCrear(); }}
+          autoFocus
         />
         <button
           className={styles.createBtn}
           onClick={handleCrear}
-          disabled={creando || !nuevoNombre.trim()}
+          disabled={creando}
           aria-label="Crear producto"
         >
           <Plus size={18} />

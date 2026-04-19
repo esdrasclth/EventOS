@@ -36,6 +36,22 @@
   pointer-events: none;
 }
 
+.unlinkedBadge {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + 4px);

@@ -1,0 +1,83 @@
+rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function userRole() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      }
+      function userActivo() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activo == true;
+      }
+      function isAdmin() {
+        return isSignedIn() && userActivo() && userRole() == 'admin';
+      }
+      function isStaff() {
+        return isSignedIn() && userActivo() && userRole() == 'staff';
+      }
+      function isDelivery() {
+        return isSignedIn() && userActivo() && userRole() == 'delivery';
+      }
+
+      // ── Users ─────────────────────────────────────────────
+      match /users/{uid} {
+        // Cada user puede leer su doc; admin lee todos
+        allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+        // Admin puede crear/actualizar cualquiera
+        allow create, update, delete: if isAdmin();
+        // El usuario puede actualizar solo su nombre (sin tocar role/activo)
+        allow update: if isSignedIn()
+                      && request.auth.uid == uid
+                      && request.resource.data.role == resource.data.role
+                      && request.resource.data.activo == resource.data.activo;
+      }
+
+      // ── Ordenes ───────────────────────────────────────────
+      match /ordenes/{id} {
+        // Admin ve todo.
+        // Staff ve las que no estén pendientes.
+        // Delivery ve solo las que tenga asignadas.
+        allow read: if isAdmin()
+                    || (isStaff() && resource.data.estado != 'pendiente')
+                    || (isDelivery() && request.auth.uid in resource.data.asignados);
+
+        // Solo admin crea órdenes nuevas.
+        allow create: if isAdmin();
+
+        // Admin: escribe todo.
+        // Staff: puede actualizar (avanzar estado, marcar entregado/pagado) si la orden no es pendiente.
+        // Delivery: solo puede actualizar si está asignado, y solo para marcar entregado.
+        allow update: if isAdmin()
+                      || (isStaff() && resource.data.estado != 'pendiente')
+                      || (
+                           isDelivery()
+                           && request.auth.uid in resource.data.asignados
+                           && request.resource.data.estado == 'entregado'
+                           && resource.data.estado == 'confirmado'
+                         );
+
+        // Solo admin borra.
+        allow delete: if isAdmin();
+      }
+
+      // ── Productos (catálogo) ──────────────────────────────
+      match /productos/{productoId} {
+        // Cualquier usuario autenticado puede leer el catálogo
+        // (staff lo necesita para autocompletar y validar al crear órdenes).
+        allow read: if isSignedIn();
+        // Solo admin puede crear, renombrar o activar/desactivar.
+        allow create, update: if isAdmin();
+      }
+
+      // ── Push ──────────────────────────────────────────────
+      match /pushSubscriptions/{uid} {
+        allow read, write: if isSignedIn() && request.auth.uid == uid;
+      }
+
+      match /orderNotifications/{docId} {
+        allow read, write: if isSignedIn() && docId.matches(request.auth.uid + '_.*');
+      }
+    }
+  }

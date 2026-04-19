@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Plus, Check } from 'lucide-react';
+import { X, Plus, Check, AlertCircle } from 'lucide-react';
 import type { ItemOrden, Producto } from '../types';
 import styles from './ItemRow.module.css';
 
@@ -7,6 +7,7 @@ interface Props {
   item: ItemOrden;
   index: number;
   productos: Producto[];
+  canAddToCatalog: boolean;
   onChange: (index: number, field: keyof ItemOrden, value: string | number) => void;
   onPatch: (index: number, patch: Partial<ItemOrden>) => void;
   onAddToCatalog: (nombre: string) => Promise<string | null>;
@@ -21,6 +22,7 @@ const ItemRow: React.FC<Props> = ({
   item,
   index,
   productos,
+  canAddToCatalog,
   onChange,
   onPatch,
   onAddToCatalog,
@@ -82,7 +84,8 @@ const ItemRow: React.FC<Props> = ({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const showDropdown = focused && (suggestions.length > 0 || (item.producto.trim() && !exactMatch));
+  const showAddButton = canAddToCatalog && !!item.producto.trim() && !exactMatch;
+  const showDropdown = focused && (suggestions.length > 0 || showAddButton);
 
   return (
     <div className={styles.row}>
@@ -96,10 +99,16 @@ const ItemRow: React.FC<Props> = ({
             onFocus={() => setFocused(true)}
             autoComplete="off"
           />
-          {item.productoId && (
+          {item.productoId ? (
             <span className={styles.linkedBadge} title="Vinculado al catálogo">
               <Check size={12} />
             </span>
+          ) : (
+            !canAddToCatalog && item.producto.trim() && (
+              <span className={styles.unlinkedBadge} title="Selecciona un producto del catálogo">
+                <AlertCircle size={12} />
+              </span>
+            )
           )}
           {showDropdown && (
             <div className={styles.dropdown}>
@@ -115,7 +124,7 @@ const ItemRow: React.FC<Props> = ({
                   {item.productoId === p.id && <Check size={14} color="var(--color-primary)" />}
                 </button>
               ))}
-              {item.producto.trim() && !exactMatch && (
+              {showAddButton && (
                 <button
                   type="button"
                   className={styles.addToCatalog}

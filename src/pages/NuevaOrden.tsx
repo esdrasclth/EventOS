@@ -13,6 +13,7 @@ import { createOrden, updateOrden, getOrden, uploadImagen } from '../services/fi
 import { createProducto } from '../services/productos';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useProductosContext } from '../contexts/ProductosContext';
+import { useAuth } from '../contexts/AuthContext';
 import ItemRow from '../components/ItemRow';
 import styles from './NuevaOrden.module.css';
 
@@ -79,6 +80,8 @@ const NuevaOrden: React.FC = () => {
 
   const { ordenes } = useOrdenes();
   const { productos } = useProductosContext();
+  const { role } = useAuth();
+  const canAddToCatalog = role === 'admin';
   const clientesMap = useMemo(() => {
     const map = new Map<string, { nombre: string; telefono: string; direccion: string }>();
     ordenes.forEach((o) => {
@@ -179,6 +182,15 @@ const NuevaOrden: React.FC = () => {
     if (!form.nombre.trim()) return alert('El nombre del cliente es requerido');
     if (!form.fecha) return alert('La fecha del evento es requerida');
     if (form.items.some((i) => !i.producto.trim())) return alert('Todos los productos necesitan nombre');
+
+    if (!canAddToCatalog) {
+      const sinCatalogo = form.items.filter((i) => !i.productoId).map((i) => i.producto.trim());
+      if (sinCatalogo.length > 0) {
+        return alert(
+          `Estos productos no están en el catálogo y debes seleccionarlos de la lista:\n\n• ${sinCatalogo.join('\n• ')}\n\nSi necesitas agregar un producto nuevo, pídele a un admin que lo cree.`,
+        );
+      }
+    }
 
     if (form.fecha && form.fechaFin && form.horaInicio && form.horaFin) {
       const startMs = new Date(`${form.fecha}T${form.horaInicio}:00`).getTime();
@@ -464,6 +476,7 @@ const NuevaOrden: React.FC = () => {
                 item={item}
                 index={i}
                 productos={productos}
+                canAddToCatalog={canAddToCatalog}
                 onChange={handleItemChange}
                 onPatch={handleItemPatch}
                 onAddToCatalog={handleAddToCatalog}
