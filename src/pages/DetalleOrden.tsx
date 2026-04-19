@@ -22,11 +22,12 @@ import {
   Bell,
   BellRing,
   UserPlus,
+  DollarSign,
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen, updateAsignados } from '../services/firebase';
+import { deleteOrden, avanzarEstadoOrden, updateOrden, uploadImagen, updateAsignados, setOrdenPagado } from '../services/firebase';
 import { listUsers } from '../services/users';
 import type { AppUser } from '../types';
 import { exportToExcel } from '../services/exportExcel';
@@ -46,7 +47,7 @@ const ESTADO_LABELS: Record<string, string> = {
   pendiente:  'Pendiente',
   confirmado: 'Confirmado',
   entregado:  'Entregado',
-  pagado:     'Pagado',
+  retirado:   'Retirado',
   cancelado:  'Cancelado',
 };
 
@@ -54,22 +55,22 @@ const ESTADO_COLORS: Record<string, string> = {
   pendiente:  '#F59E0B',
   confirmado: '#3B82F6',
   entregado:  '#14B8A6',
-  pagado:     '#22C55E',
+  retirado:   '#22C55E',
   cancelado:  '#EF4444',
 };
 
 const SIGUIENTE_ESTADO: Record<string, { estado: string; label: string } | null> = {
   pendiente:  { estado: 'confirmado', label: 'Confirmar orden' },
   confirmado: { estado: 'entregado',  label: 'Marcar como entregado' },
-  entregado:  { estado: 'pagado',     label: 'Marcar como pagado' },
-  pagado:     null,
+  entregado:  { estado: 'retirado',   label: 'Marcar como retirado' },
+  retirado:   null,
   cancelado:  null,
 };
 
 // Puede eliminarse solo si está pendiente
 const puedeEliminar = (estado: string) => estado === 'pendiente';
-// Puede editarse solo si no está pagado ni cancelado
-const puedeEditar = (estado: string) => estado !== 'pagado' && estado !== 'cancelado';
+// Puede editarse mientras no esté retirado ni cancelado
+const puedeEditar = (estado: string) => estado !== 'retirado' && estado !== 'cancelado';
 // Puede cancelarse si está confirmado o entregado
 const puedeCancelar = (estado: string) => estado === 'confirmado' || estado === 'entregado';
 
@@ -141,6 +142,7 @@ const DetalleOrden: React.FC = () => {
   const [deleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [togglingPagado, setTogglingPagado] = useState(false);
   const [asignarMode, setAsignarMode] = useState<'confirm' | 'edit' | null>(null);
   const [usersCache, setUsersCache] = useState<AppUser[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -252,6 +254,21 @@ const DetalleOrden: React.FC = () => {
     }
   }
 
+  async function handleTogglePagado() {
+    if (!orden) return;
+    const next = !orden.pagado;
+    if (!next && !confirm('¿Quitar la marca de pagado?')) return;
+    setTogglingPagado(true);
+    try {
+      await setOrdenPagado(orden.id, next);
+    } catch (e) {
+      console.error('[detalle] setOrdenPagado error:', e);
+      alert('No se pudo actualizar el estado de pago.');
+    } finally {
+      setTogglingPagado(false);
+    }
+  }
+
   async function handleExportPdf() {
     if (!orden) return;
     setPdfLoading(true);
@@ -287,6 +304,17 @@ const DetalleOrden: React.FC = () => {
           >
             {notifEnabled ? <BellRing size={18} /> : <Bell size={18} />}
           </button>
+          {(isAdmin || isStaff) && (
+            <button
+              className={`${styles.heroActionBtn} ${orden.pagado ? styles.heroActionPagado : ''}`}
+              onClick={handleTogglePagado}
+              disabled={togglingPagado}
+              aria-label={orden.pagado ? 'Quitar marca de pagado' : 'Marcar como pagado'}
+              title={orden.pagado ? 'Pagado' : 'Marcar como pagado'}
+            >
+              <DollarSign size={18} />
+            </button>
+          )}
           {(isAdmin || isStaff) && puedeEditar(orden.estado) && (
             <button
               className={styles.heroActionBtn}
@@ -560,7 +588,16 @@ const DetalleOrden: React.FC = () => {
                 </span>
               </p>
             )}
-            {orden.pagadoPor && puedeVerPrecios && (
+            {orden.retiradoPor && (
+              <p className={styles.auditLine}>
+                <span className={styles.auditVerb}>Retirado por</span>
+                <span className={styles.auditUser}>{orden.retiradoPor.nombre}</span>
+                <span className={styles.auditDate}>
+                  {new Date(orden.retiradoPor.en).toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              </p>
+            )}
+            {orden.pagado && orden.pagadoPor && puedeVerPrecios && (
               <p className={styles.auditLine}>
                 <span className={styles.auditVerb}>Pagado por</span>
                 <span className={styles.auditUser}>{orden.pagadoPor.nombre}</span>
@@ -618,10 +655,10 @@ const DetalleOrden: React.FC = () => {
         {(() => {
           const next = SIGUIENTE_ESTADO[orden.estado];
           if (!next) {
-            return orden.estado === 'pagado' ? (
+            return orden.estado === 'retirado' ? (
               <button className={`${styles.btn} ${styles.btnDone}`} disabled>
                 <CheckCircle2 size={18} />
-                Orden pagada ✓
+                Orden retirada ✓
               </button>
             ) : (
               <button className={`${styles.btn} ${styles.btnCancelled}`} disabled>
@@ -631,13 +668,13 @@ const DetalleOrden: React.FC = () => {
             );
           }
           // Gating por rol en transiciones:
-          // pendiente → confirmado : admin
-          // confirmado → entregado : admin, staff, delivery
-          // entregado → pagado     : admin, staff
+          // pendiente  → confirmado : admin, staff
+          // confirmado → entregado  : admin, staff, delivery
+          // entregado  → retirado   : admin, staff, delivery
           const canAdvance =
-            (orden.estado === 'pendiente'  && isAdmin) ||
+            (orden.estado === 'pendiente'  && (isAdmin || isStaff)) ||
             (orden.estado === 'confirmado' && (isAdmin || isStaff || isDelivery)) ||
-            (orden.estado === 'entregado'  && (isAdmin || isStaff));
+            (orden.estado === 'entregado'  && (isAdmin || isStaff || isDelivery));
           if (!canAdvance) return null;
           return (
             <button

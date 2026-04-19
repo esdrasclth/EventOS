@@ -172,7 +172,7 @@ const ESTADO_COLORS: Record<string, string> = {
   pendiente:  '#F59E0B',
   confirmado: '#3B82F6',
   entregado:  '#14B8A6',
-  pagado:     '#22C55E',
+  retirado:   '#22C55E',
   cancelado:  '#EF4444',
 };
 
@@ -220,6 +220,16 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
           >
             {orden.estado.toUpperCase()}
           </Text>
+          {orden.pagado && (
+            <Text
+              style={[
+                styles.estadoBadge,
+                { color: '#22C55E', marginTop: 4 },
+              ]}
+            >
+              PAGADO
+            </Text>
+          )}
         </View>
       </View>
 

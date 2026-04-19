@@ -72,6 +72,14 @@
   background: rgba(239,68,68,0.8);
 }
 
+.heroActionPagado {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.heroActionPagado:active {
+  background: rgba(22, 163, 74, 0.9);
+}
+
 .estadoBadge {
   position: absolute;
   top: calc(var(--space-xl) + 52px + env(safe-area-inset-top, 0px));

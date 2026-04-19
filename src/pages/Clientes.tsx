@@ -18,7 +18,7 @@ const ESTADO_COLORS: Record<string, string> = {
   pendiente:  '#F59E0B',
   confirmado: '#3B82F6',
   entregado:  '#14B8A6',
-  pagado:     '#22C55E',
+  retirado:   '#22C55E',
   cancelado:  '#EF4444',
 };
 
@@ -26,7 +26,7 @@ const ESTADO_LABELS: Record<string, string> = {
   pendiente:  'Pendiente',
   confirmado: 'Confirmado',
   entregado:  'Entregado',
-  pagado:     'Pagado',
+  retirado:   'Retirado',
   cancelado:  'Cancelado',
 };
 

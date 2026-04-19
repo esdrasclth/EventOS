@@ -13,6 +13,7 @@ const FILTERS: FilterChip[] = [
   { id: 'pendientes', label: 'Pendientes' },
   { id: 'confirmadas',label: 'Confirmadas' },
   { id: 'entregadas', label: 'Entregadas' },
+  { id: 'retiradas',  label: 'Retiradas' },
   { id: 'pagadas',    label: 'Pagadas' },
   { id: 'canceladas', label: 'Canceladas' },
 ];
@@ -63,7 +64,8 @@ const Ordenes: React.FC = () => {
         if (filter === 'pendientes'  && o.estado !== 'pendiente')  continue;
         if (filter === 'confirmadas' && o.estado !== 'confirmado') continue;
         if (filter === 'entregadas'  && o.estado !== 'entregado')  continue;
-        if (filter === 'pagadas'     && o.estado !== 'pagado')     continue;
+        if (filter === 'retiradas'   && o.estado !== 'retirado')   continue;
+        if (filter === 'pagadas'     && !o.pagado)                 continue;
         if (filter === 'canceladas'  && o.estado !== 'cancelado')  continue;
       }
 

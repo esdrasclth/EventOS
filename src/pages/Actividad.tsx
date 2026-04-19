@@ -17,7 +17,7 @@ const ESTADO_MAP = {
   pendiente:  { label: 'Pendiente',  color: '#F59E0B', bg: '#FEF3C7' },
   confirmado: { label: 'Confirmado', color: '#3B82F6', bg: '#EFF6FF' },
   entregado:  { label: 'Entregado',  color: '#14B8A6', bg: '#F0FDFA' },
-  pagado:     { label: 'Pagado',     color: '#22C55E', bg: '#DCFCE7' },
+  retirado:   { label: 'Retirado',   color: '#22C55E', bg: '#DCFCE7' },
   cancelado:  { label: 'Cancelado',  color: '#EF4444', bg: '#FEE2E2' },
 };
 
@@ -62,7 +62,7 @@ const ActividadContent: React.FC = () => {
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
 
-    const completadas = thisMonth.filter((o) => o.estado === 'pagado');
+    const completadas = thisMonth.filter((o) => o.pagado);
     const pendientes = ordenes.filter((o) => o.estado === 'pendiente');
     const ingresos = completadas.reduce((sum, o) => sum + o.total, 0);
     const ingresosEsperados = ordenes

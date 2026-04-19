@@ -31,7 +31,7 @@ const Home: React.FC = () => {
 
   const stats = useMemo(() => {
     const todayMs = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); })();
-    const EXCLUDED = new Set(['entregado', 'pagado', 'cancelado']);
+    const EXCLUDED = new Set(['entregado', 'retirado', 'cancelado']);
 
     let totalMes = 0;
     let ingresosMes = 0;
@@ -44,7 +44,7 @@ const Home: React.FC = () => {
 
       if (m - 1 === currentMonth && y === currentYear) {
         totalMes++;
-        if (o.estado === 'pagado') ingresosMes += o.total;
+        if (o.pagado) ingresosMes += o.total;
       }
 
       if (fechaMs >= todayMs && !EXCLUDED.has(o.estado)) {

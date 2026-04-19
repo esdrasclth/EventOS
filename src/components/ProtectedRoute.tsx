@@ -16,7 +16,9 @@ const ProtectedRoute: React.FC<Props> = ({ children, roles }) => {
   if (loading) {
     return (
       <div className={styles.splash}>
-        <div className={styles.logo}>E</div>
+        <div className={styles.logo}>
+          <img src="/logo.png" alt="Pancho's Rentals" />
+        </div>
         <div className={styles.spinner} />
       </div>
     );

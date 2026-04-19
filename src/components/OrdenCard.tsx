@@ -14,7 +14,7 @@ const ESTADO_MAP = {
   pendiente:  { label: 'Pendiente',  color: '#F59E0B' },
   confirmado: { label: 'Confirmado', color: '#3B82F6' },
   entregado:  { label: 'Entregado',  color: '#14B8A6' },
-  pagado:     { label: 'Pagado',     color: '#22C55E' },
+  retirado:   { label: 'Retirado',   color: '#22C55E' },
   cancelado:  { label: 'Cancelado',  color: '#EF4444' },
 };
 

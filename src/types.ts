@@ -4,7 +4,7 @@ export interface ItemOrden {
   precio: number;
 }
 
-export type EstadoOrden = 'pendiente' | 'confirmado' | 'entregado' | 'pagado' | 'cancelado';
+export type EstadoOrden = 'pendiente' | 'confirmado' | 'entregado' | 'retirado' | 'cancelado';
 
 export interface AuditInfo {
   uid: string;
@@ -27,6 +27,7 @@ export interface Orden {
   direccion: string;
   comentarios: string;
   estado: EstadoOrden;
+  pagado?: boolean;
   items: ItemOrden[];
   total: number;
   imagenUrl: string;
@@ -34,6 +35,7 @@ export interface Orden {
   creadoPor?: AuditInfo;
   confirmadoPor?: AuditInfo;
   entregadoPor?: AuditInfo;
+  retiradoPor?: AuditInfo;
   pagadoPor?: AuditInfo;
   canceladoPor?: AuditInfo;
   modificadoPor?: AuditInfo;

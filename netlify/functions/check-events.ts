@@ -89,7 +89,7 @@ export default async function handler() {
       };
 
       if (!o.fecha || !o.horaInicio) continue;
-      if (o.estado === 'cancelado' || o.estado === 'pagado') continue;
+      if (o.estado === 'cancelado' || o.estado === 'retirado') continue;
 
       const eventMs = new Date(`${o.fecha}T${o.horaInicio}:00`).getTime();
       const eventName = o.nombreEvento || o.nombre;

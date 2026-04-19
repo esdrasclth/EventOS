@@ -70,6 +70,15 @@ function nextMockId(): string {
 
 // ── Service functions ─────────────────────────────────────────────────────────
 
+// Legacy docs stored `estado: 'pagado'`. In the new model `pagado` is a separate
+// boolean and the terminal state is `retirado`. Normalize on read.
+function normalizeOrden(raw: Record<string, unknown>): Record<string, unknown> {
+  if (raw.estado === 'pagado') {
+    return { ...raw, estado: 'retirado', pagado: true };
+  }
+  return raw;
+}
+
 export async function getOrdenes(): Promise<Orden[]> {
   if (USE_MOCK_DATA) {
     return [...mockData].sort(
@@ -78,7 +87,7 @@ export async function getOrdenes(): Promise<Orden[]> {
   }
   const q = query(collection(db, 'ordenes'), orderBy('fecha'));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Orden));
+  return snap.docs.map((d) => ({ id: d.id, ...normalizeOrden(d.data()) } as Orden));
 }
 
 export async function getOrden(id: string): Promise<Orden | null> {
@@ -87,7 +96,7 @@ export async function getOrden(id: string): Promise<Orden | null> {
   }
   const snap = await getDoc(doc(db, 'ordenes', id));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as Orden;
+  return { id: snap.id, ...normalizeOrden(snap.data()) } as Orden;
 }
 
 export function subscribeToOrdenes(
@@ -106,7 +115,7 @@ export function subscribeToOrdenes(
   } else if (opts.role === 'staff') {
     q = query(
       collection(db, 'ordenes'),
-      where('estado', 'in', ['confirmado', 'entregado', 'pagado', 'cancelado']),
+      where('estado', 'in', ['confirmado', 'entregado', 'retirado', 'pagado', 'cancelado']),
       orderBy('fecha'),
     );
   } else {
@@ -119,7 +128,7 @@ export function subscribeToOrdenes(
 
   return onSnapshot(
     q,
-    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Orden))),
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...normalizeOrden(d.data()) } as Orden))),
     onError,
   );
 }
@@ -135,7 +144,7 @@ export function subscribeToOrden(
   }
   return onSnapshot(
     doc(db, 'ordenes', id),
-    (snap) => callback(snap.exists() ? ({ id: snap.id, ...snap.data() } as Orden) : null),
+    (snap) => callback(snap.exists() ? ({ id: snap.id, ...normalizeOrden(snap.data()) } as Orden) : null),
     onError,
   );
 }
@@ -200,7 +209,7 @@ export async function avanzarEstadoOrden(
   const auditKey: Record<string, string> = {
     confirmado: 'confirmadoPor',
     entregado: 'entregadoPor',
-    pagado: 'pagadoPor',
+    retirado: 'retiradoPor',
     cancelado: 'canceladoPor',
   };
   if (USE_MOCK_DATA) {
@@ -217,6 +226,23 @@ export async function avanzarEstadoOrden(
     ...(audit ? { modificadoPor: audit } : {}),
     ...(audit && auditKey[nuevoEstado] ? { [auditKey[nuevoEstado]]: audit } : {}),
     ...(extra?.asignados ? { asignados: extra.asignados } : {}),
+  });
+}
+
+export async function setOrdenPagado(id: string, pagado: boolean): Promise<void> {
+  const audit = currentAudit();
+  if (USE_MOCK_DATA) {
+    const orden = mockData.find((o) => o.id === id);
+    if (orden) {
+      (orden as unknown as Record<string, unknown>).pagado = pagado;
+      if (pagado && audit) (orden as unknown as Record<string, unknown>).pagadoPor = audit;
+    }
+    return;
+  }
+  await updateDoc(doc(db, 'ordenes', id), {
+    pagado,
+    ...(audit ? { modificadoPor: audit } : {}),
+    ...(pagado && audit ? { pagadoPor: audit } : {}),
   });
 }
 
