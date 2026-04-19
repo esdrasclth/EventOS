@@ -95,13 +95,13 @@ async function showLocalNotification(
     const reg = await navigator.serviceWorker.ready;
     await reg.showNotification(title, {
       body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       tag: `order-${ordenId}`,
       data: { ordenId },
     } as NotificationOptions);
   } catch {
-    new Notification(title, { body, icon: '/icons/icon-192.png' });
+    new Notification(title, { body, icon: '/logo.png' });
   }
 }
 

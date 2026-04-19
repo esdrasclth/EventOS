@@ -38,7 +38,9 @@ const Login: React.FC = () => {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <div className={styles.heroLogo}>E</div>
+        <div className={styles.heroLogo}>
+          <img src="/logo.png" alt="Pancho's Rentals" />
+        </div>
         <h1 className={styles.heroTitle}>Pancho's Rentals</h1>
         <p className={styles.heroSubtitle}>Gestión de eventos</p>
       </div>

@@ -4,6 +4,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   pdf,
 } from '@react-pdf/renderer';
@@ -27,6 +28,17 @@ const styles = StyleSheet.create({
     borderBottomColor: '#386641',
   },
   headerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  headerLogo: {
+    width: 56,
+    height: 56,
+    objectFit: 'contain',
+  },
+  headerInfo: {
     flex: 1,
   },
   companyName: {
@@ -187,11 +199,14 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.companyName}>Pancho's Rentals</Text>
-          <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
-          <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
-          <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>
-          <Text style={styles.companySubtitle}>panchosrentals@hotmail.com</Text>
+          <Image src="/logo.png" style={styles.headerLogo} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.companyName}>Pancho's Rentals</Text>
+            <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
+            <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
+            <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>
+            <Text style={styles.companySubtitle}>panchosrentals@hotmail.com</Text>
+          </View>
         </View>
         <View style={styles.headerRight}>
           <Text style={styles.ordenLabel}>COTIZACIÓN / ORDEN</Text>
