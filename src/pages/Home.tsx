@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut, UserCog } from 'lucide-react';
+import { TrendingUp, Calendar, DollarSign, ChevronRight, LogOut, UserCog, Package } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useAuth } from '../contexts/AuthContext';
 import OrdenCard from '../components/OrdenCard';
@@ -76,13 +76,22 @@ const Home: React.FC = () => {
           </div>
           <div className={styles.headerActions}>
             {role === 'admin' && (
-              <button
-                className={styles.headerIconBtn}
-                onClick={() => navigate('/usuarios')}
-                aria-label="Gestionar usuarios"
-              >
-                <UserCog size={18} />
-              </button>
+              <>
+                <button
+                  className={styles.headerIconBtn}
+                  onClick={() => navigate('/productos')}
+                  aria-label="Gestionar productos"
+                >
+                  <Package size={18} />
+                </button>
+                <button
+                  className={styles.headerIconBtn}
+                  onClick={() => navigate('/usuarios')}
+                  aria-label="Gestionar usuarios"
+                >
+                  <UserCog size={18} />
+                </button>
+              </>
             )}
             <button className={styles.logoutBtn} onClick={logout} aria-label="Cerrar sesión">
               <LogOut size={18} />

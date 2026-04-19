@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrdenesProvider } from './contexts/OrdenesContext';
 import { UsersProvider } from './contexts/UsersContext';
+import { ProductosProvider } from './contexts/ProductosContext';
 import './styles/global.css';
 import App from './App.tsx';
 
@@ -12,9 +13,11 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <UsersProvider>
-          <OrdenesProvider>
-            <App />
-          </OrdenesProvider>
+          <ProductosProvider>
+            <OrdenesProvider>
+              <App />
+            </OrdenesProvider>
+          </ProductosProvider>
         </UsersProvider>
       </AuthProvider>
     </BrowserRouter>

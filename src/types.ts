@@ -1,7 +1,16 @@
 export interface ItemOrden {
   producto: string;
+  productoId?: string;
   cantidad: number;
   precio: number;
+}
+
+export interface Producto {
+  id: string;
+  nombre: string;
+  activo: boolean;
+  creadoEn: string;
+  creadoPor?: AuditInfo;
 }
 
 export type EstadoOrden = 'pendiente' | 'confirmado' | 'entregado' | 'retirado' | 'cancelado';

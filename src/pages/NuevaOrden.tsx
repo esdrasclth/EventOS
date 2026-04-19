@@ -10,7 +10,9 @@ import {
 } from 'lucide-react';
 import type { ItemOrden, EstadoOrden, OrdenFormData } from '../types';
 import { createOrden, updateOrden, getOrden, uploadImagen } from '../services/firebase';
+import { createProducto } from '../services/productos';
 import { useOrdenes } from '../hooks/useOrdenes';
+import { useProductosContext } from '../contexts/ProductosContext';
 import ItemRow from '../components/ItemRow';
 import styles from './NuevaOrden.module.css';
 
@@ -76,6 +78,7 @@ const NuevaOrden: React.FC = () => {
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const { ordenes } = useOrdenes();
+  const { productos } = useProductosContext();
   const clientesMap = useMemo(() => {
     const map = new Map<string, { nombre: string; telefono: string; direccion: string }>();
     ordenes.forEach((o) => {
@@ -136,6 +139,22 @@ const NuevaOrden: React.FC = () => {
     const updated = [...form.items];
     updated[index] = { ...updated[index], [field]: value };
     setField('items', updated);
+  }
+
+  function handleItemPatch(index: number, patch: Partial<ItemOrden>) {
+    const updated = [...form.items];
+    updated[index] = { ...updated[index], ...patch };
+    setField('items', updated);
+  }
+
+  async function handleAddToCatalog(nombre: string): Promise<string | null> {
+    try {
+      return await createProducto(nombre);
+    } catch (e) {
+      console.error('[nuevaorden] createProducto error:', e);
+      alert('No se pudo agregar el producto al catálogo.');
+      return null;
+    }
   }
 
   function addItem() {
@@ -444,7 +463,10 @@ const NuevaOrden: React.FC = () => {
                 key={i}
                 item={item}
                 index={i}
+                productos={productos}
                 onChange={handleItemChange}
+                onPatch={handleItemPatch}
+                onAddToCatalog={handleAddToCatalog}
                 onRemove={removeItem}
               />
             ))}
