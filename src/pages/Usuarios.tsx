@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, UserPlus, CheckCircle2, XCircle, Shield, UserCog, Truck } from 'lucide-react';
-import { listUsers, updateUserRole, setUserActive } from '../services/users';
+import { updateUserRole, setUserActive } from '../services/users';
 import { useAuth } from '../contexts/AuthContext';
+import { useUsersContext } from '../contexts/UsersContext';
 import type { AppUser, UserRole } from '../types';
 import CrearUsuarioModal from '../components/CrearUsuarioModal';
 import styles from './Usuarios.module.css';
@@ -22,26 +23,10 @@ const ROLE_ICON: Record<UserRole, React.ReactNode> = {
 const Usuarios: React.FC = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState<AppUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, loading, updateLocal } = useUsersContext();
   const [search, setSearch] = useState('');
   const [showCrear, setShowCrear] = useState(false);
   const [busyUid, setBusyUid] = useState<string | null>(null);
-
-  const fetchUsers = useCallback(async () => {
-    try {
-      const data = await listUsers();
-      setUsers(data);
-    } catch (e) {
-      console.error('[usuarios] listUsers error:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -64,7 +49,7 @@ const Usuarios: React.FC = () => {
     setBusyUid(uid);
     try {
       await updateUserRole(uid, role);
-      setUsers((prev) => prev.map((u) => (u.uid === uid ? { ...u, role } : u)));
+      updateLocal(uid, { role });
     } catch (e) {
       console.error('[usuarios] updateUserRole error:', e);
       alert('No se pudo actualizar el rol.');
@@ -77,9 +62,7 @@ const Usuarios: React.FC = () => {
     setBusyUid(u.uid);
     try {
       await setUserActive(u.uid, !u.activo);
-      setUsers((prev) =>
-        prev.map((x) => (x.uid === u.uid ? { ...x, activo: !u.activo } : x)),
-      );
+      updateLocal(u.uid, { activo: !u.activo });
     } catch (e) {
       console.error('[usuarios] setUserActive error:', e);
       alert('No se pudo cambiar el estado.');
@@ -212,10 +195,7 @@ const Usuarios: React.FC = () => {
       {showCrear && (
         <CrearUsuarioModal
           onCancel={() => setShowCrear(false)}
-          onCreated={() => {
-            setShowCrear(false);
-            fetchUsers();
-          }}
+          onCreated={() => setShowCrear(false)}
         />
       )}
     </div>

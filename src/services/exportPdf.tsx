@@ -294,12 +294,23 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
 
 export async function exportToPdf(orden: Orden): Promise<void> {
   const blob = await pdf(<OrdenDocument orden={orden} />).toBlob();
-  const url = URL.createObjectURL(blob);
   const filename = `orden-${orden.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`;
 
-  // Open in a new tab instead of `<a download>`: on iOS PWA/WebViews, download
-  // links navigate the current SPA view to the blob URL, breaking Firestore
-  // subscriptions on return.
+  // Prefer Web Share API (native share sheet): keeps the PWA foregrounded on
+  // iOS. Blob-URL navigation suspends the WebView and breaks new Firestore
+  // operations for several seconds on return.
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return;
+      console.error('[pdf] share failed, falling back:', e);
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
   const win = window.open(url, '_blank', 'noopener,noreferrer');
   if (!win) {
     const a = document.createElement('a');
@@ -307,6 +318,5 @@ export async function exportToPdf(orden: Orden): Promise<void> {
     a.download = filename;
     a.click();
   }
-
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
