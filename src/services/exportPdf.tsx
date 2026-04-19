@@ -295,9 +295,18 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
 export async function exportToPdf(orden: Orden): Promise<void> {
   const blob = await pdf(<OrdenDocument orden={orden} />).toBlob();
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `orden-${orden.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  const filename = `orden-${orden.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+
+  // Open in a new tab instead of `<a download>`: on iOS PWA/WebViews, download
+  // links navigate the current SPA view to the blob URL, breaking Firestore
+  // subscriptions on return.
+  const win = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!win) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+  }
+
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
