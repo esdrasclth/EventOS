@@ -172,6 +172,32 @@
   line-height: 1.4;
 }
 
+.exportBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: calc(100% - var(--space-lg) * 2);
+  margin: 0 var(--space-lg) var(--space-md);
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.exportBtn:active {
+  transform: scale(0.98);
+  background: var(--color-primary-bg);
+}
+
+.exportBtn:disabled {
+  opacity: 0.6;
+}
+
 .list {
   display: flex;
   flex-direction: column;

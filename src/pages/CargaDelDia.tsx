@@ -9,13 +9,13 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  FileDown,
 } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useProductosContext } from '../contexts/ProductosContext';
-import type { Orden } from '../types';
+import { aggregateCarga, filterOrdenesDelDia } from '../utils/cargaAggregation';
+import { exportCargaToPdf } from '../services/exportCargaPdf';
 import styles from './CargaDelDia.module.css';
-
-const EXCLUDED_ESTADOS = new Set(['cancelado', 'retirado']);
 
 function todayStr(): string {
   return new Date().toISOString().split('T')[0];
@@ -37,99 +37,23 @@ function formatDateLong(dateStr: string): string {
   });
 }
 
-function normalize(s: string): string {
-  return s
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/s\b/g, ''); // drop trailing "s" for simple plural collapse
-}
-
-interface AggregatedProduct {
-  key: string;
-  nombre: string;
-  productoId?: string;
-  catalogado: boolean;
-  totalUnidades: number;
-  lineas: Array<{ ordenId: string; ordenNombre: string; evento: string; cantidad: number }>;
-}
-
-function aggregate(ordenes: Orden[]): AggregatedProduct[] {
-  const map = new Map<string, AggregatedProduct>();
-
-  for (const o of ordenes) {
-    for (const item of o.items) {
-      if (!item.producto.trim() || !item.cantidad) continue;
-
-      const key = item.productoId
-        ? `id:${item.productoId}`
-        : `name:${normalize(item.producto)}`;
-
-      const existing = map.get(key);
-      if (existing) {
-        existing.totalUnidades += item.cantidad;
-        existing.lineas.push({
-          ordenId: o.id,
-          ordenNombre: o.nombre,
-          evento: o.nombreEvento || o.nombre,
-          cantidad: item.cantidad,
-        });
-      } else {
-        map.set(key, {
-          key,
-          nombre: item.producto,
-          productoId: item.productoId,
-          catalogado: !!item.productoId,
-          totalUnidades: item.cantidad,
-          lineas: [
-            {
-              ordenId: o.id,
-              ordenNombre: o.nombre,
-              evento: o.nombreEvento || o.nombre,
-              cantidad: item.cantidad,
-            },
-          ],
-        });
-      }
-    }
-  }
-
-  return Array.from(map.values()).sort((a, b) => {
-    if (a.catalogado !== b.catalogado) return a.catalogado ? -1 : 1;
-    return b.totalUnidades - a.totalUnidades;
-  });
-}
-
 const CargaDelDia: React.FC = () => {
   const navigate = useNavigate();
   const { ordenes, loading } = useOrdenes();
   const { productos } = useProductosContext();
   const [fecha, setFecha] = useState<string>(todayStr());
   const [expandido, setExpandido] = useState<Set<string>>(new Set());
+  const [exportando, setExportando] = useState(false);
 
   const ordenesDia = useMemo(
-    () =>
-      ordenes
-        .filter((o) => o.fecha === fecha && !EXCLUDED_ESTADOS.has(o.estado))
-        .sort((a, b) => (a.horaInicio ?? '').localeCompare(b.horaInicio ?? '')),
+    () => filterOrdenesDelDia(ordenes, fecha),
     [ordenes, fecha],
   );
 
-  // Use current catalog names for catalogued products (renames reflect here).
-  const productoNombreMap = useMemo(() => {
-    const m = new Map<string, string>();
-    productos.forEach((p) => m.set(p.id, p.nombre));
-    return m;
-  }, [productos]);
-
-  const aggregated = useMemo(() => {
-    const raw = aggregate(ordenesDia);
-    return raw.map((p) => ({
-      ...p,
-      nombre: p.productoId ? productoNombreMap.get(p.productoId) ?? p.nombre : p.nombre,
-    }));
-  }, [ordenesDia, productoNombreMap]);
+  const aggregated = useMemo(
+    () => aggregateCarga(ordenesDia, productos),
+    [ordenesDia, productos],
+  );
 
   const totalUnidades = aggregated.reduce((sum, p) => sum + p.totalUnidades, 0);
   const totalProductos = aggregated.length;
@@ -142,6 +66,19 @@ const CargaDelDia: React.FC = () => {
       else next.add(key);
       return next;
     });
+  }
+
+  async function handleExportPdf() {
+    if (ordenesDia.length === 0 || exportando) return;
+    setExportando(true);
+    try {
+      await exportCargaToPdf(fecha, ordenesDia, aggregated);
+    } catch (e) {
+      console.error('[carga] exportCargaToPdf error:', e);
+      alert('No se pudo generar el PDF.');
+    } finally {
+      setExportando(false);
+    }
   }
 
   return (
@@ -230,6 +167,15 @@ const CargaDelDia: React.FC = () => {
               </span>
             </div>
           )}
+
+          <button
+            className={styles.exportBtn}
+            onClick={handleExportPdf}
+            disabled={exportando}
+          >
+            <FileDown size={18} />
+            {exportando ? 'Generando PDF…' : 'Descargar detalle en PDF'}
+          </button>
 
           <div className={styles.list}>
             {aggregated.map((p) => {
