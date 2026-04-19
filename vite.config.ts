@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
-        name: 'Panchos Rentals',
-        short_name: 'Panchos Rentals',
+        name: "Pancho's Rentals",
+        short_name: "Pancho's Rentals",
         description: 'Gestión de agenda para alquiler de mobiliario de eventos',
         theme_color: '#386641',
         background_color: '#FFFFFF',

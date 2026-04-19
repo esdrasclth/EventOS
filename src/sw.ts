@@ -49,7 +49,7 @@ registerRoute(
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
-  let title = 'Panchos Rentals';
+  let title = "Pancho's Rentals";
   let body = '';
   let tag: string | undefined;
   let data: Record<string, unknown> | undefined;
