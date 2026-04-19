@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Orden } from '../types';
 import { subscribeToOrden } from '../services/firebase';
+import { useOrdenesContext } from '../contexts/OrdenesContext';
 
 interface UseOrdenResult {
   orden: Orden | null;
@@ -9,27 +10,36 @@ interface UseOrdenResult {
 }
 
 export function useOrden(id: string): UseOrdenResult {
-  const [orden, setOrden] = useState<Orden | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { ordenes, loading: listLoading } = useOrdenesContext();
+  const fromList = ordenes.find((o) => o.id === id) ?? null;
+
+  const [fallback, setFallback] = useState<Orden | null>(null);
+  const [fallbackLoading, setFallbackLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const needsFallback = !listLoading && !fromList && !!id;
+
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
+    if (!needsFallback) return;
+    setFallbackLoading(true);
     const unsub = subscribeToOrden(
       id,
       (data) => {
-        setOrden(data);
-        setLoading(false);
+        setFallback(data);
+        setFallbackLoading(false);
       },
       (e) => {
         setError('Error al cargar la orden');
-        setLoading(false);
+        setFallbackLoading(false);
         console.error(e);
       },
     );
     return unsub;
-  }, [id]);
+  }, [id, needsFallback]);
 
-  return { orden, loading, error };
+  return {
+    orden: fromList ?? fallback,
+    loading: fromList ? false : listLoading || fallbackLoading,
+    error,
+  };
 }
