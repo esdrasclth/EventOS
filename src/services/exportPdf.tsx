@@ -189,7 +189,9 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
         <View style={styles.headerLeft}>
           <Text style={styles.companyName}>Pancho's Rentals</Text>
           <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
-          <Text style={styles.companySubtitle}>Honduras · eventoshn@gmail.com</Text>
+          <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
+          <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>
+          <Text style={styles.companySubtitle}>panchosrentals@hotmail.com</Text>
         </View>
         <View style={styles.headerRight}>
           <Text style={styles.ordenLabel}>COTIZACIÓN / ORDEN</Text>
