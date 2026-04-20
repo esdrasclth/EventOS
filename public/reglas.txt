@@ -37,20 +37,21 @@ rules_version = '2';
       // ── Ordenes ───────────────────────────────────────────
       match /ordenes/{id} {
         // Admin ve todo.
-        // Staff ve las que no estén pendientes.
-        // Delivery ve solo las que tenga asignadas.
+        // Staff y Delivery ven solo las órdenes que tengan asignadas
+        // (sin importar el estado, incluso pendientes).
         allow read: if isAdmin()
-                    || (isStaff() && resource.data.estado != 'pendiente')
-                    || (isDelivery() && request.auth.uid in resource.data.asignados);
+                    || ((isStaff() || isDelivery())
+                        && request.auth.uid in resource.data.asignados);
 
         // Solo admin crea órdenes nuevas.
         allow create: if isAdmin();
 
         // Admin: escribe todo.
-        // Staff: puede actualizar (avanzar estado, marcar entregado/pagado) si la orden no es pendiente.
+        // Staff: puede actualizar (avanzar estado, marcar entregado/pagado)
+        //        siempre que esté asignado a la orden.
         // Delivery: solo puede actualizar si está asignado, y solo para marcar entregado.
         allow update: if isAdmin()
-                      || (isStaff() && resource.data.estado != 'pendiente')
+                      || (isStaff() && request.auth.uid in resource.data.asignados)
                       || (
                            isDelivery()
                            && request.auth.uid in resource.data.asignados

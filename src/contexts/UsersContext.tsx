@@ -13,14 +13,14 @@ interface UsersContextValue {
 const UsersContext = createContext<UsersContextValue | null>(null);
 
 export function UsersProvider({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+    if (!user || role !== 'admin') {
       setUsers([]);
       setLoading(false);
       return;
@@ -41,7 +41,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       },
     );
     return unsub;
-  }, [authLoading, user]);
+  }, [authLoading, user, role]);
 
   const updateLocal = useCallback((uid: string, patch: Partial<AppUser>) => {
     setUsers((prev) => prev.map((u) => (u.uid === uid ? { ...u, ...patch } : u)));

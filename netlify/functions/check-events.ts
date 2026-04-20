@@ -123,8 +123,14 @@ export default async function handler() {
                     data: { ordenId: orderDoc.id },
                   }),
                 )
-                .catch((err: { statusCode?: number }) => {
-                  if (err.statusCode === 410) {
+                .then(() => {
+                  console.log(`[push] OK user=${userId} orden=${orderDoc.id} window=${label}`);
+                })
+                .catch((err: { statusCode?: number; body?: string; message?: string }) => {
+                  console.error(
+                    `[push] FAIL user=${userId} orden=${orderDoc.id} status=${err.statusCode} msg=${err.message} body=${err.body}`,
+                  );
+                  if (err.statusCode === 410 || err.statusCode === 404) {
                     db.collection('pushSubscriptions').doc(userId).delete();
                   }
                 }),

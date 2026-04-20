@@ -112,12 +112,6 @@ export function subscribeToOrdenes(
   let q;
   if (!opts || opts.role === 'admin') {
     q = query(collection(db, 'ordenes'), orderBy('fecha'));
-  } else if (opts.role === 'staff') {
-    q = query(
-      collection(db, 'ordenes'),
-      where('estado', 'in', ['confirmado', 'entregado', 'retirado', 'pagado', 'cancelado']),
-      orderBy('fecha'),
-    );
   } else {
     q = query(
       collection(db, 'ordenes'),
