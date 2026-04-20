@@ -182,6 +182,40 @@
   border: 1px solid rgba(239,68,68,0.2);
 }
 
+/* Info (success / neutral) */
+.infoBox {
+  background: rgba(59,130,246,0.08);
+  color: #1D4ED8;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(59,130,246,0.2);
+  line-height: 1.4;
+}
+
+/* Link button (forgot password / back) */
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: center;
+  margin-top: var(--space-md);
+  padding: 6px 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+}
+
+.linkBtn:hover {
+  opacity: 0.75;
+}
+
 /* Submit */
 .submitBtn {
   display: flex;

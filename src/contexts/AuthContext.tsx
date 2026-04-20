@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useMemo, useCall
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   type User,
 } from 'firebase/auth';
@@ -16,6 +17,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   refreshAppUser: () => Promise<void>;
 }
 
@@ -56,6 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  }, []);
+
   const refreshAppUser = useCallback(async () => {
     const current = auth.currentUser;
     if (!current) return;
@@ -76,9 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       login,
       logout,
+      resetPassword,
       refreshAppUser,
     }),
-    [user, appUser, loading, login, logout, refreshAppUser],
+    [user, appUser, loading, login, logout, resetPassword, refreshAppUser],
   );
 
   return (
