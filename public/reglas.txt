@@ -49,14 +49,23 @@ rules_version = '2';
         // Admin: escribe todo.
         // Staff: puede actualizar (avanzar estado, marcar entregado/pagado)
         //        siempre que esté asignado a la orden.
-        // Delivery: solo puede actualizar si está asignado, y solo para marcar entregado.
+        // Delivery: puede actualizar si está asignado, solo para:
+        //   - avanzar confirmado → entregado, o entregado → retirado
+        //   - subir/cambiar la imagen (solo afecta imagenUrl y modificadoPor)
         allow update: if isAdmin()
                       || (isStaff() && request.auth.uid in resource.data.asignados)
                       || (
                            isDelivery()
                            && request.auth.uid in resource.data.asignados
-                           && request.resource.data.estado == 'entregado'
-                           && resource.data.estado == 'confirmado'
+                           && (
+                                (request.resource.data.estado == 'entregado'
+                                 && resource.data.estado == 'confirmado')
+                                || (request.resource.data.estado == 'retirado'
+                                    && resource.data.estado == 'entregado')
+                                || request.resource.data.diff(resource.data)
+                                     .affectedKeys()
+                                     .hasOnly(['imagenUrl', 'modificadoPor'])
+                              )
                          );
 
         // Solo admin borra.
