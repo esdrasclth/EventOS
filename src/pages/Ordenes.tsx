@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Search, List, Calendar } from 'lucide-react';
 import { useOrdenes } from '../hooks/useOrdenes';
 import OrdenCard from '../components/OrdenCard';
 import FilterChips from '../components/FilterChips';
 import type { FilterChip } from '../components/FilterChips';
+import OrdenesCalendario from '../components/OrdenesCalendario';
 import styles from './Ordenes.module.css';
+
+type ViewMode = 'list' | 'calendar';
 
 const FILTERS: FilterChip[] = [
   { id: 'todas',      label: 'Todas' },
@@ -36,6 +39,7 @@ const Ordenes: React.FC = () => {
   const { ordenes, loading } = useOrdenes();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('todas');
+  const [view, setView] = useState<ViewMode>('list');
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -84,22 +88,45 @@ const Ordenes: React.FC = () => {
         <h1 className={styles.title}>Mis Órdenes</h1>
         <p className={styles.subtitle}>{ordenes.length} órdenes en total</p>
 
-        <div className={styles.searchBar}>
-          <Search size={18} className={styles.searchIcon} />
-          <input
-            className={styles.searchInput}
-            type="search"
-            placeholder="Buscar por nombre, dirección..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {view === 'list' && (
+          <div className={styles.searchBar}>
+            <Search size={18} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="search"
+              placeholder="Buscar por nombre, dirección..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        )}
+
+        <div className={styles.viewToggle}>
+          <button
+            type="button"
+            className={`${styles.viewBtn} ${view === 'list' ? styles.viewBtnActive : ''}`}
+            onClick={() => setView('list')}
+          >
+            <List size={16} /> Lista
+          </button>
+          <button
+            type="button"
+            className={`${styles.viewBtn} ${view === 'calendar' ? styles.viewBtnActive : ''}`}
+            onClick={() => setView('calendar')}
+          >
+            <Calendar size={16} /> Calendario
+          </button>
         </div>
       </header>
 
-      <FilterChips chips={FILTERS} activeId={filter} onChange={setFilter} />
+      {view === 'list' && (
+        <FilterChips chips={FILTERS} activeId={filter} onChange={setFilter} />
+      )}
 
       <div className={styles.list}>
-        {loading ? (
+        {view === 'calendar' ? (
+          <OrdenesCalendario ordenes={ordenes} />
+        ) : loading ? (
           <div className={styles.skeletonList}>
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className={`skeleton ${styles.skeletonCard}`} />
