@@ -30,8 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
       if (u) {
+        setLoading(true);
+        setUser(u);
         try {
           const profile = await getAppUser(u.uid);
           setAppUser(profile);
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setCurrentAppUserNombre(null);
         }
       } else {
+        setUser(null);
         setAppUser(null);
         setCurrentAppUserNombre(null);
       }
