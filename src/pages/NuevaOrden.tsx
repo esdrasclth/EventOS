@@ -102,7 +102,7 @@ const NuevaOrden: React.FC = () => {
     fechaFin: today,
     horaFin: '18:00',
     nombre: searchParams.get('nombre') ?? '',
-    telefono: searchParams.get('telefono') ?? '',
+    telefono: searchParams.get('telefono') ?? '+1 ',
     direccion: searchParams.get('direccion') ?? '',
     estado: 'pendiente',
     comentarios: '',
@@ -237,12 +237,18 @@ const NuevaOrden: React.FC = () => {
   }, [form.nombre, clientesMap, isEdit]);
 
   function selectCliente(c: { nombre: string; telefono: string; direccion: string }) {
-    setForm((prev) => ({
-      ...prev,
-      nombre: c.nombre,
-      telefono: prev.telefono || c.telefono,
-      direccion: prev.direccion || c.direccion,
-    }));
+    setForm((prev) => {
+      const currentEmpty = !prev.telefono || prev.telefono === '+1 ';
+      const clientTel = c.telefono
+        ? c.telefono.startsWith('+1') ? c.telefono : `+1 ${c.telefono}`
+        : '+1 ';
+      return {
+        ...prev,
+        nombre: c.nombre,
+        telefono: currentEmpty ? clientTel : prev.telefono,
+        direccion: prev.direccion || c.direccion,
+      };
+    });
     setShowSuggestions(false);
   }
 
@@ -257,16 +263,18 @@ const NuevaOrden: React.FC = () => {
   }, []);
 
   function handleTelefonoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-    let formatted = '';
+    const raw = e.target.value;
+    const withoutPrefix = raw.startsWith('+1') ? raw.slice(2) : raw;
+    const digits = withoutPrefix.replace(/\D/g, '').slice(0, 10);
+    let local = '';
     if (digits.length <= 3) {
-      formatted = digits.length ? `(${digits}` : '';
+      local = digits.length ? `(${digits}` : '';
     } else if (digits.length <= 6) {
-      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+      local = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
     } else {
-      formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      local = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
     }
-    setField('telefono', formatted);
+    setField('telefono', `+1 ${local}`);
   }
 
   if (loadingOrden) {
@@ -443,10 +451,10 @@ const NuevaOrden: React.FC = () => {
             <input
               className={styles.input}
               type="tel"
-              placeholder="(509) 555-1234"
+              placeholder="+1 (509) 555-1234"
               value={form.telefono}
               onChange={handleTelefonoChange}
-              maxLength={14}
+              maxLength={17}
             />
           </div>
           <div className={styles.field}>
