@@ -262,21 +262,26 @@ const NuevaOrden: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  function formatTelDigits(digits: string): string {
+    const d = digits.slice(0, 10);
+    if (d.length <= 3) return d.length ? `(${d}` : '';
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  }
+
   function handleTelefonoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
-    // Strip +1 or leading 1 (country code) before extracting digits
-    const stripped = raw.replace(/^\+?1\s*/, '').replace(/\+1\s*/g, '');
-    let digits = stripped.replace(/\D/g, '');
-    digits = digits.slice(0, 10);
-    let local = '';
-    if (digits.length <= 3) {
-      local = digits.length ? `(${digits}` : '';
-    } else if (digits.length <= 6) {
-      local = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-    } else {
-      local = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-    }
-    setField('telefono', `+1 ${local}`);
+    const withoutPrefix = raw.startsWith('+1') ? raw.slice(2) : raw;
+    const digits = withoutPrefix.replace(/\D/g, '');
+    setField('telefono', `+1 ${formatTelDigits(digits)}`);
+  }
+
+  function handleTelefonoPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text');
+    const stripped = pasted.replace(/^\+?1\s*/, '');
+    const digits = stripped.replace(/\D/g, '');
+    setField('telefono', `+1 ${formatTelDigits(digits)}`);
   }
 
   if (loadingOrden) {
@@ -456,6 +461,7 @@ const NuevaOrden: React.FC = () => {
               placeholder="+1 (509) 555-1234"
               value={form.telefono}
               onChange={handleTelefonoChange}
+              onPaste={handleTelefonoPaste}
               maxLength={17}
             />
           </div>
