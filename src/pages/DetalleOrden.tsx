@@ -315,7 +315,7 @@ const DetalleOrden: React.FC = () => {
               <DollarSign size={18} />
             </button>
           )}
-          {(isAdmin || isStaff) && puedeEditar(orden.estado) && (
+          {(isAdmin || (isStaff && puedeEditar(orden.estado))) && (
             <button
               className={styles.heroActionBtn}
               onClick={() => navigate(`/ordenes/${orden.id}/editar`)}
