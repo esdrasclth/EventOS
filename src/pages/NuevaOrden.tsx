@@ -264,9 +264,9 @@ const NuevaOrden: React.FC = () => {
 
   function handleTelefonoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
-    const withoutPrefix = raw.startsWith('+1') ? raw.slice(2) : raw;
-    let digits = withoutPrefix.replace(/\D/g, '');
-    if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+    // Strip +1 or leading 1 (country code) before extracting digits
+    const stripped = raw.replace(/^\+?1\s*/, '').replace(/\+1\s*/g, '');
+    let digits = stripped.replace(/\D/g, '');
     digits = digits.slice(0, 10);
     let local = '';
     if (digits.length <= 3) {
