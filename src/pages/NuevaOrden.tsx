@@ -20,7 +20,7 @@ import styles from './NuevaOrden.module.css';
 const ESTADOS: { value: EstadoOrden; label: string; color: string }[] = [
   { value: 'pendiente',  label: 'Pendiente',  color: '#F59E0B' },
   { value: 'confirmado', label: 'Confirmado', color: '#3B82F6' },
-  { value: 'entregado',  label: 'Entregado',  color: '#14B8A6' },
+  { value: 'entregado',  label: 'Entregado',  color: '#6B7280' },
   { value: 'retirado',   label: 'Retirado',   color: '#22C55E' },
 ];
 

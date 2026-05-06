@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Package } from 'lucide-react';
+import { MapPin, Package, CheckCircle } from 'lucide-react';
 import type { Orden } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './OrdenCard.module.css';
@@ -13,7 +13,7 @@ interface Props {
 const ESTADO_MAP = {
   pendiente:  { label: 'Pendiente',  color: '#F59E0B' },
   confirmado: { label: 'Confirmado', color: '#3B82F6' },
-  entregado:  { label: 'Entregado',  color: '#14B8A6' },
+  entregado:  { label: 'Entregado',  color: '#6B7280' },
   retirado:   { label: 'Retirado',   color: '#22C55E' },
   cancelado:  { label: 'Cancelado',  color: '#EF4444' },
 };
@@ -45,6 +45,12 @@ const OrdenCard: React.FC<Props> = ({ orden, animationDelay = 0 }) => {
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && navigate(`/ordenes/${orden.id}`)}
     >
+      {orden.pagado && (
+        <div className={styles.paidBadge} title="Pagada">
+          <CheckCircle size={13} />
+          <span>Pagada</span>
+        </div>
+      )}
       <div className={styles.body}>
         <div className={styles.top}>
           <div className={styles.clientInfo}>

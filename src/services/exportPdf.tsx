@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
 const ESTADO_COLORS: Record<string, string> = {
   pendiente:  '#F59E0B',
   confirmado: '#3B82F6',
-  entregado:  '#14B8A6',
+  entregado:  '#6B7280',
   retirado:   '#22C55E',
   cancelado:  '#EF4444',
 };

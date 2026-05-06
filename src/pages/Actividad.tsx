@@ -16,7 +16,7 @@ import noAccessStyles from '../components/NoAccess.module.css';
 const ESTADO_MAP = {
   pendiente:  { label: 'Pendiente',  color: '#F59E0B', bg: '#FEF3C7' },
   confirmado: { label: 'Confirmado', color: '#3B82F6', bg: '#EFF6FF' },
-  entregado:  { label: 'Entregado',  color: '#14B8A6', bg: '#F0FDFA' },
+  entregado:  { label: 'Entregado',  color: '#6B7280', bg: '#F3F4F6' },
   retirado:   { label: 'Retirado',   color: '#22C55E', bg: '#DCFCE7' },
   cancelado:  { label: 'Cancelado',  color: '#EF4444', bg: '#FEE2E2' },
 };

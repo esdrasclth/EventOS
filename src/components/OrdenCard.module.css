@@ -5,7 +5,25 @@
   border: 1px solid var(--color-border);
   cursor: pointer;
   overflow: hidden;
+  position: relative;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.paidBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #22C55E;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px 4px 8px;
+  border-bottom-left-radius: var(--radius-lg);
+  letter-spacing: 0.2px;
+  z-index: 1;
 }
 
 .card:active {
@@ -72,7 +90,10 @@
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 6px;
+  position: absolute;
+  right: var(--space-lg);
+  top: 50%;
+  transform: translateY(-50%);
   box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, List, Calendar } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useOrdenes } from '../hooks/useOrdenes';
 import OrdenCard from '../components/OrdenCard';
 import FilterChips from '../components/FilterChips';
@@ -39,7 +40,10 @@ const Ordenes: React.FC = () => {
   const { ordenes, loading } = useOrdenes();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('todas');
-  const [view, setView] = useState<ViewMode>('list');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = (searchParams.get('view') as ViewMode) || 'list';
+  const setView = (v: ViewMode) =>
+    setSearchParams(prev => { prev.set('view', v); return prev; }, { replace: true });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

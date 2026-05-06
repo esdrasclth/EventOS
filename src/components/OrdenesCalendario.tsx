@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import type { Orden } from '../types';
 import OrdenCard from './OrdenCard';
 import styles from './OrdenesCalendario.module.css';
@@ -11,7 +12,7 @@ interface Props {
 const ESTADO_COLOR: Record<string, string> = {
   pendiente:  '#F59E0B',
   confirmado: '#3B82F6',
-  entregado:  '#14B8A6',
+  entregado:  '#6B7280',
   retirado:   '#22C55E',
   cancelado:  '#EF4444',
 };
@@ -51,9 +52,36 @@ const OrdenesCalendario: React.FC<Props> = ({ ordenes }) => {
   const today = useMemo(() => new Date(), []);
   const todayISO = useMemo(() => toISODate(today), [today]);
 
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [selected, setSelected] = useState<string | null>(todayISO);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // "cal" param format: "YYYY-M" (1-based month), e.g. "2026-5"
+  const calParam = searchParams.get('cal');
+  const dateParam = searchParams.get('date');
+
+  const [viewYear, viewMonth] = useMemo(() => {
+    if (calParam) {
+      const [y, m] = calParam.split('-').map(Number);
+      if (!isNaN(y) && !isNaN(m)) return [y, m - 1];
+    }
+    return [today.getFullYear(), today.getMonth()];
+  }, [calParam, today]);
+
+  const selected: string | null = dateParam ?? todayISO;
+
+  function setSelected(iso: string | null) {
+    setSearchParams(prev => {
+      if (iso) prev.set('date', iso);
+      else prev.delete('date');
+      return prev;
+    }, { replace: true });
+  }
+
+  function setViewYearMonth(year: number, month: number) {
+    setSearchParams(prev => {
+      prev.set('cal', `${year}-${month + 1}`);
+      return prev;
+    }, { replace: true });
+  }
 
   const ordenesPorDia = useMemo(() => {
     const map = new Map<string, Orden[]>();
@@ -113,29 +141,20 @@ const OrdenesCalendario: React.FC<Props> = ({ ordenes }) => {
 
   function goPrev() {
     const m = viewMonth - 1;
-    if (m < 0) {
-      setViewYear(viewYear - 1);
-      setViewMonth(11);
-    } else {
-      setViewMonth(m);
-    }
+    if (m < 0) setViewYearMonth(viewYear - 1, 11);
+    else setViewYearMonth(viewYear, m);
     setSelected(null);
   }
 
   function goNext() {
     const m = viewMonth + 1;
-    if (m > 11) {
-      setViewYear(viewYear + 1);
-      setViewMonth(0);
-    } else {
-      setViewMonth(m);
-    }
+    if (m > 11) setViewYearMonth(viewYear + 1, 0);
+    else setViewYearMonth(viewYear, m);
     setSelected(null);
   }
 
   function goToday() {
-    setViewYear(today.getFullYear());
-    setViewMonth(today.getMonth());
+    setViewYearMonth(today.getFullYear(), today.getMonth());
     setSelected(todayISO);
   }
 
