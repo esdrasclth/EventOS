@@ -141,21 +141,32 @@ const OrdenesCalendario: React.FC<Props> = ({ ordenes }) => {
 
   function goPrev() {
     const m = viewMonth - 1;
-    if (m < 0) setViewYearMonth(viewYear - 1, 11);
-    else setViewYearMonth(viewYear, m);
-    setSelected(null);
+    const newYear = m < 0 ? viewYear - 1 : viewYear;
+    const newMonth = m < 0 ? 11 : m;
+    setSearchParams(prev => {
+      prev.set('cal', `${newYear}-${newMonth + 1}`);
+      prev.delete('date');
+      return prev;
+    }, { replace: true });
   }
 
   function goNext() {
     const m = viewMonth + 1;
-    if (m > 11) setViewYearMonth(viewYear + 1, 0);
-    else setViewYearMonth(viewYear, m);
-    setSelected(null);
+    const newYear = m > 11 ? viewYear + 1 : viewYear;
+    const newMonth = m > 11 ? 0 : m;
+    setSearchParams(prev => {
+      prev.set('cal', `${newYear}-${newMonth + 1}`);
+      prev.delete('date');
+      return prev;
+    }, { replace: true });
   }
 
   function goToday() {
-    setViewYearMonth(today.getFullYear(), today.getMonth());
-    setSelected(todayISO);
+    setSearchParams(prev => {
+      prev.set('cal', `${today.getFullYear()}-${today.getMonth() + 1}`);
+      prev.set('date', todayISO);
+      return prev;
+    }, { replace: true });
   }
 
   const selectedOrdenes = useMemo(() => {
