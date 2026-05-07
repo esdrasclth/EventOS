@@ -76,12 +76,6 @@ const OrdenesCalendario: React.FC<Props> = ({ ordenes }) => {
     }, { replace: true });
   }
 
-  function setViewYearMonth(year: number, month: number) {
-    setSearchParams(prev => {
-      prev.set('cal', `${year}-${month + 1}`);
-      return prev;
-    }, { replace: true });
-  }
 
   const ordenesPorDia = useMemo(() => {
     const map = new Map<string, Orden[]>();
